@@ -1,0 +1,280 @@
+{
+  "version": "1.0.0",
+  "strategy": {
+    "preset": true,
+    "allowCustomCategories": true,
+    "customCategoryTypeRequired": true,
+    "allowFavorites": true
+  },
+  "incomeCategories": [
+    {
+      "id": "salary",
+      "name": "Salario",
+      "examples": [
+        "Salario mensal CLT",
+        "Adiantamento salarial"
+      ]
+    },
+    {
+      "id": "pro_labore",
+      "name": "Pro-labore",
+      "examples": [
+        "Retirada mensal do socio"
+      ]
+    },
+    {
+      "id": "freelance",
+      "name": "Freelancer/Autonomo",
+      "examples": [
+        "Projeto pontual",
+        "Servico avulso"
+      ]
+    },
+    {
+      "id": "commission_bonus",
+      "name": "Comissao/Bonificacao",
+      "examples": [
+        "Bonus trimestral",
+        "Comissao de vendas"
+      ]
+    },
+    {
+      "id": "benefits",
+      "name": "Beneficios",
+      "examples": [
+        "Vale alimentacao",
+        "Auxilio home office"
+      ]
+    },
+    {
+      "id": "rent_income",
+      "name": "Aluguel recebido",
+      "examples": [
+        "Aluguel de imovel",
+        "Aluguel de vaga"
+      ]
+    },
+    {
+      "id": "investment_income",
+      "name": "Rendimentos de investimentos",
+      "examples": [
+        "Dividendos",
+        "Juros de renda fixa"
+      ]
+    },
+    {
+      "id": "reimbursement",
+      "name": "Reembolso",
+      "examples": [
+        "Reembolso de empresa",
+        "Reembolso de saude"
+      ]
+    },
+    {
+      "id": "casual_sale",
+      "name": "Venda eventual",
+      "examples": [
+        "Venda de eletronico usado",
+        "Venda de movel"
+      ]
+    },
+    {
+      "id": "gift_donation_received",
+      "name": "Presente/Doacao recebida",
+      "examples": [
+        "Presente em dinheiro",
+        "Ajuda familiar"
+      ]
+    },
+    {
+      "id": "other_income",
+      "name": "Outras entradas",
+      "examples": [
+        "Entrada nao classificada"
+      ]
+    }
+  ],
+  "expenseCategories": [
+    {
+      "id": "housing",
+      "name": "Moradia",
+      "examples": [
+        "Aluguel",
+        "Condominio"
+      ]
+    },
+    {
+      "id": "utilities",
+      "name": "Contas essenciais",
+      "examples": [
+        "Agua",
+        "Luz",
+        "Gas",
+        "Internet",
+        "Telefone"
+      ]
+    },
+    {
+      "id": "groceries",
+      "name": "Alimentacao em casa",
+      "examples": [
+        "Mercado",
+        "Feira"
+      ]
+    },
+    {
+      "id": "dining_out",
+      "name": "Alimentacao fora",
+      "examples": [
+        "Restaurante",
+        "Delivery"
+      ]
+    },
+    {
+      "id": "transport",
+      "name": "Transporte",
+      "examples": [
+        "Combustivel",
+        "Uber",
+        "Onibus"
+      ]
+    },
+    {
+      "id": "health",
+      "name": "Saude",
+      "examples": [
+        "Farmacia",
+        "Consulta",
+        "Plano de saude"
+      ]
+    },
+    {
+      "id": "education",
+      "name": "Educacao",
+      "examples": [
+        "Mensalidade escolar",
+        "Curso"
+      ]
+    },
+    {
+      "id": "debts_loans",
+      "name": "Dividas e emprestimos",
+      "examples": [
+        "Parcela de emprestimo",
+        "Acordo de divida"
+      ]
+    },
+    {
+      "id": "credit_card",
+      "name": "Cartao de credito",
+      "examples": [
+        "Fatura mensal",
+        "Pagamento minimo"
+      ]
+    },
+    {
+      "id": "taxes_fees",
+      "name": "Impostos e taxas",
+      "examples": [
+        "IPTU",
+        "IPVA",
+        "Taxa bancaria"
+      ]
+    },
+    {
+      "id": "insurance",
+      "name": "Seguros",
+      "examples": [
+        "Seguro auto",
+        "Seguro residencial"
+      ]
+    },
+    {
+      "id": "leisure",
+      "name": "Lazer",
+      "examples": [
+        "Cinema",
+        "Passeio"
+      ]
+    },
+    {
+      "id": "subscriptions",
+      "name": "Assinaturas e servicos digitais",
+      "examples": [
+        "Streaming",
+        "Software"
+      ]
+    },
+    {
+      "id": "personal_care",
+      "name": "Cuidados pessoais",
+      "examples": [
+        "Cabeleireiro",
+        "Cosmeticos"
+      ]
+    },
+    {
+      "id": "clothing",
+      "name": "Vestuario",
+      "examples": [
+        "Roupas",
+        "Calcados"
+      ]
+    },
+    {
+      "id": "children_family",
+      "name": "Filhos/Familia",
+      "examples": [
+        "Escola dos filhos",
+        "Mesada"
+      ]
+    },
+    {
+      "id": "pets",
+      "name": "Pets",
+      "examples": [
+        "Racao",
+        "Veterinario"
+      ]
+    },
+    {
+      "id": "home_maintenance",
+      "name": "Manutencao do lar",
+      "examples": [
+        "Reparo eletrico",
+        "Material de construcao"
+      ]
+    },
+    {
+      "id": "travel",
+      "name": "Viagens",
+      "examples": [
+        "Passagem",
+        "Hospedagem"
+      ]
+    },
+    {
+      "id": "donations",
+      "name": "Doacoes",
+      "examples": [
+        "Doacao mensal",
+        "Contribuicao pontual"
+      ]
+    },
+    {
+      "id": "investments_contribution",
+      "name": "Investimentos/Aportes",
+      "examples": [
+        "Aporte em renda fixa",
+        "Aporte em fundo"
+      ]
+    },
+    {
+      "id": "other_expense",
+      "name": "Outras saidas",
+      "examples": [
+        "Saida nao classificada"
+      ]
+    }
+  ]
+}

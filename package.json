@@ -1,0 +1,16 @@
+{
+  "name": "personalfinance",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Base de dominio e infraestrutura para app financeiro familiar.",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
