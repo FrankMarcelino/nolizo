@@ -9,11 +9,10 @@ export async function GET(request: NextRequest) {
 
     const client = createSupabaseAdminClient();
     const { data, error } = await client
-      .from("family_members")
-      .select("id, name, email, active")
+      .from("assets")
+      .select("*")
       .eq("family_id", familyId)
-      .eq("active", true)
-      .order("name");
+      .order("estimated_value", { ascending: false });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ data });
@@ -28,21 +27,25 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as Record<string, unknown>;
     const familyId = String(body.familyId ?? "").trim();
     const name = String(body.name ?? "").trim();
+    const estimatedValue = Number(body.estimatedValue ?? 0);
 
-    if (!familyId || !name) {
+    if (!familyId || !name || estimatedValue < 0) {
       return NextResponse.json(
-        { error: "familyId and name are required" },
+        { error: "familyId, name and estimatedValue (>= 0) are required" },
         { status: 400 }
       );
     }
 
     const client = createSupabaseAdminClient();
     const { data, error } = await client
-      .from("family_members")
+      .from("assets")
       .insert({
         family_id: familyId,
         name,
-        email: body.email ? String(body.email).trim() : null,
+        estimated_value: estimatedValue,
+        acquisition_date: body.acquisitionDate ? String(body.acquisitionDate) : null,
+        category: body.category ? String(body.category) : null,
+        notes: body.notes ? String(body.notes) : null,
       })
       .select()
       .single();

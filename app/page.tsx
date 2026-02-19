@@ -8,6 +8,11 @@ export default function Home() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <NavCard
+          href="/planejamento"
+          title="Planejamento"
+          desc="Kanban de dividas com barra de cobertura."
+        />
+        <NavCard
           href="/despesas/nova"
           title="Nova Despesa"
           desc="Cadastre uma conta ou despesa rapidamente."
@@ -23,9 +28,19 @@ export default function Home() {
           desc="Veja todas as movimentacoes por periodo."
         />
         <NavCard
-          href="/planejamento"
-          title="Planejamento"
-          desc="Kanban de dividas com barra de cobertura."
+          href="/desejos"
+          title="Desejos"
+          desc="Liste o que voce quer adquirir e priorize."
+        />
+        <NavCard
+          href="/patrimonio"
+          title="Patrimonio"
+          desc="Cadastre bens e veja o total do patrimonio."
+        />
+        <NavCard
+          href="/configuracoes"
+          title="Configuracoes"
+          desc="Configure sua familia e membros."
         />
       </div>
     </div>

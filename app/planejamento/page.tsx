@@ -98,9 +98,18 @@ export default function PlanejamentoPage() {
   }, [fetchData]);
 
   async function markAsPaid(expenseId: string) {
-    // TODO: implementar endpoint PATCH quando necessario
-    alert("Funcionalidade de marcar como paga sera implementada em breve.");
-    void expenseId;
+    try {
+      const res = await fetch(`/api/expenses/${expenseId}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ status: "paga" }),
+      });
+      if (res.ok) {
+        fetchData();
+      }
+    } catch {
+      /* ignore */
+    }
   }
 
   return (

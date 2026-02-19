@@ -8,10 +8,21 @@ export const metadata: Metadata = {
 
 const NAV_ITEMS = [
   { href: "/", label: "Inicio" },
+  { href: "/planejamento", label: "Planejamento" },
   { href: "/despesas/nova", label: "Nova Despesa" },
   { href: "/entradas/nova", label: "Nova Entrada" },
   { href: "/extrato", label: "Extrato" },
-  { href: "/planejamento", label: "Planejamento" },
+  { href: "/desejos", label: "Desejos" },
+  { href: "/patrimonio", label: "Patrimonio" },
+  { href: "/configuracoes", label: "Configuracoes" },
+];
+
+const MOBILE_NAV = [
+  { href: "/planejamento", label: "Plano" },
+  { href: "/despesas/nova", label: "Despesa" },
+  { href: "/entradas/nova", label: "Entrada" },
+  { href: "/extrato", label: "Extrato" },
+  { href: "/configuracoes", label: "Config" },
 ];
 
 export default function RootLayout({
@@ -23,7 +34,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className="min-h-screen">
         <div className="flex min-h-screen">
-          <nav className="hidden md:flex flex-col w-56 border-r border-border bg-bg-card p-4 gap-1">
+          <nav className="hidden md:flex flex-col w-56 border-r border-border bg-bg-card p-4 gap-1 shrink-0">
             <a href="/" className="text-xl font-bold text-primary mb-6">
               Nolizo
             </a>
@@ -38,28 +49,21 @@ export default function RootLayout({
             ))}
           </nav>
 
-          <main className="flex-1 p-4 md:p-8">{children}</main>
+          <main className="flex-1 p-4 md:p-8 pb-20 md:pb-8">{children}</main>
         </div>
 
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-bg-card border-t border-border flex justify-around py-3 z-50">
-          <MobileLink href="/" label="Inicio" />
-          <MobileLink href="/despesas/nova" label="Despesa" />
-          <MobileLink href="/entradas/nova" label="Entrada" />
-          <MobileLink href="/extrato" label="Extrato" />
-          <MobileLink href="/planejamento" label="Plano" />
+          {MOBILE_NAV.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="text-xs font-medium text-text-muted hover:text-primary transition-colors"
+            >
+              {item.label}
+            </a>
+          ))}
         </nav>
       </body>
     </html>
-  );
-}
-
-function MobileLink({ href, label }: { href: string; label: string }) {
-  return (
-    <a
-      href={href}
-      className="text-xs font-medium text-text-muted hover:text-primary transition-colors"
-    >
-      {label}
-    </a>
   );
 }
