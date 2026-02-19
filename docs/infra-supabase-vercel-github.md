@@ -1,43 +1,33 @@
-# Infraestrutura de deploy - Supabase + Vercel + GitHub
+# Infraestrutura - Supabase + Vercel + GitHub
 
-## Arquitetura alvo
+## Arquitetura
 
-- Banco: Supabase (PostgreSQL + migrations SQL versionadas em `supabase/migrations`).
-- Hospedagem app: Vercel com integracao nativa ao GitHub.
-- Orquestração de CI/CD: GitHub Actions.
+- **Banco**: Supabase (PostgreSQL). Migrations e seeds rodados manualmente.
+- **Hospedagem**: Vercel com integracao nativa ao GitHub (deploy automatico no push).
+- **CI**: GitHub Actions roda type check e testes em cada push/PR.
 
 ## Fluxo de deploy
 
-1. Push para `main`.
-2. Workflow `CI` valida tipos e testes.
-3. Workflow `Deploy Database` aplica migrations no Supabase remoto.
-4. Vercel detecta o push no GitHub e realiza build/deploy automaticamente.
+1. Valida localmente com `npm run dev`.
+2. Push para `main`.
+3. GitHub Actions roda CI (check + test).
+4. Vercel detecta o push e faz build/deploy automatico.
 
-## Secrets obrigatórios no GitHub
+## Banco de dados
 
-Configurar em `Settings -> Secrets and variables -> Actions`:
+Migrations ficam em `supabase/migrations/` como referencia.
+Seed fica em `supabase/seed.sql`.
+Ambos sao aplicados **manualmente** no painel ou CLI do Supabase.
 
-- `SUPABASE_DB_URL`
+## Variaveis de ambiente
 
-Nao e necessario configurar secrets da Vercel no GitHub quando a integracao GitHub <-> Vercel estiver ativa.
+### Local (`.env`)
 
-## Comandos locais recomendados
-
-```bash
-npm install
-npm run check
-npm run test
+```
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
 ```
 
-## Supabase local (opcional para desenvolvimento)
+### Vercel (painel do projeto)
 
-```bash
-supabase start
-supabase db reset
-```
-
-## Observações importantes
-
-- O seed inicial de categorias está em `supabase/seed.sql`.
-- O app já considera modelo de rateio familiar (`igual`, `percentual`, `valorFixo`).
-- No MVP, baixa parcial de despesa não muda status real para `paga`.
+Configurar as mesmas variaveis em Settings -> Environment Variables.
