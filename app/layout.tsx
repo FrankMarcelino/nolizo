@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 
 const NAV_ITEMS = [
   { href: "/", label: "Inicio" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/planejamento", label: "Planejamento" },
   { href: "/despesas/nova", label: "Nova Despesa" },
   { href: "/entradas/nova", label: "Nova Entrada" },
@@ -18,9 +19,9 @@ const NAV_ITEMS = [
 ];
 
 const MOBILE_NAV = [
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/planejamento", label: "Plano" },
   { href: "/despesas/nova", label: "Despesa" },
-  { href: "/entradas/nova", label: "Entrada" },
   { href: "/extrato", label: "Extrato" },
   { href: "/configuracoes", label: "Config" },
 ];

@@ -8,6 +8,12 @@ export default function Home() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <NavCard
+          href="/dashboard"
+          title="Dashboard"
+          desc="Visao geral com graficos e metricas."
+          highlight
+        />
+        <NavCard
           href="/planejamento"
           title="Planejamento"
           desc="Kanban de dividas com barra de cobertura."
@@ -51,18 +57,26 @@ function NavCard({
   href,
   title,
   desc,
+  highlight,
 }: {
   href: string;
   title: string;
   desc: string;
+  highlight?: boolean;
 }) {
   return (
     <a
       href={href}
-      className="block rounded-xl bg-bg-card border border-border p-6 hover:border-primary transition-colors"
+      className={`block rounded-xl border p-6 transition-colors ${
+        highlight
+          ? "bg-primary text-white border-primary hover:bg-primary-hover"
+          : "bg-bg-card border-border hover:border-primary"
+      }`}
     >
       <h2 className="font-semibold text-lg mb-1">{title}</h2>
-      <p className="text-sm text-text-muted">{desc}</p>
+      <p className={`text-sm ${highlight ? "text-white/80" : "text-text-muted"}`}>
+        {desc}
+      </p>
     </a>
   );
 }
