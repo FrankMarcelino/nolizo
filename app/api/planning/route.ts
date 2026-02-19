@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     let expQuery = client
       .from("expenses")
       .select(
-        "id,amount,category_id,description,due_date,status,split_mode,expense_shares(member_id,percentage,fixed_amount)"
+        "id,amount,category_id,description,due_date,status,split_mode,priority,interest_rate,penalty_amount,expense_shares(member_id,percentage,fixed_amount)"
       )
       .eq("family_id", familyId);
 
@@ -41,20 +41,22 @@ export async function GET(request: NextRequest) {
     const today = new Date().toISOString().slice(0, 10);
     const expenses = expResult.data ?? [];
 
-    const overdue = expenses
-      .filter((e) => e.status !== "paga" && e.due_date < today)
-      .sort((a, b) => a.due_date.localeCompare(b.due_date))
-      .map(mapExpense);
+    const mapped = expenses.map((e) => ({
+      ...mapExpense(e),
+      hybridScore: computeHybridScore(e, today),
+    }));
 
-    const upcoming = expenses
-      .filter((e) => e.status !== "paga" && e.due_date >= today)
-      .sort((a, b) => a.due_date.localeCompare(b.due_date))
-      .map(mapExpense);
+    const overdue = mapped
+      .filter((e) => e.status !== "paga" && e.dueDate < today)
+      .sort((a, b) => a.hybridScore - b.hybridScore || a.dueDate.localeCompare(b.dueDate));
 
-    const paid = expenses
+    const upcoming = mapped
+      .filter((e) => e.status !== "paga" && e.dueDate >= today)
+      .sort((a, b) => a.hybridScore - b.hybridScore || a.dueDate.localeCompare(b.dueDate));
+
+    const paid = mapped
       .filter((e) => e.status === "paga")
-      .sort((a, b) => b.due_date.localeCompare(a.due_date))
-      .map(mapExpense);
+      .sort((a, b) => b.dueDate.localeCompare(a.dueDate));
 
     const totalDebt =
       overdue.reduce((s, e) => s + e.amount, 0) +
@@ -93,6 +95,9 @@ function mapExpense(row: Record<string, unknown>) {
     description: (row.description as string) ?? null,
     dueDate: row.due_date as string,
     status: row.status as string,
+    priority: Number(row.priority ?? 3),
+    interestRate: Number(row.interest_rate ?? 0),
+    penaltyAmount: Number(row.penalty_amount ?? 0),
     shares: Array.isArray(row.expense_shares)
       ? (row.expense_shares as Record<string, unknown>[]).map((s) => ({
           memberId: s.member_id as string,
@@ -101,4 +106,34 @@ function mapExpense(row: Record<string, unknown>) {
         }))
       : [],
   };
+}
+
+/**
+ * Hybrid priority score (lower = more urgent).
+ * Combines user-defined priority (1-5) with automated urgency factors:
+ * - Days overdue (more overdue = higher urgency)
+ * - Interest rate (higher rate = higher urgency)
+ * - Penalty amount relative to expense (higher = higher urgency)
+ */
+function computeHybridScore(row: Record<string, unknown>, today: string): number {
+  const userPriority = Number(row.priority ?? 3);
+  const dueDate = row.due_date as string;
+  const interestRate = Number(row.interest_rate ?? 0);
+  const penaltyAmount = Number(row.penalty_amount ?? 0);
+  const amount = Number(row.amount ?? 1);
+
+  const dueMs = new Date(dueDate + "T00:00:00").getTime();
+  const todayMs = new Date(today + "T00:00:00").getTime();
+  const daysOverdue = Math.max(0, (todayMs - dueMs) / 86_400_000);
+
+  // Urgency bonus: each overdue day reduces score by 0.05, capped at -2.5 (50 days)
+  const overdueBonus = Math.min(daysOverdue * 0.05, 2.5);
+
+  // Interest urgency: higher interest = more urgent, capped at -1.0
+  const interestBonus = Math.min(interestRate * 0.1, 1.0);
+
+  // Penalty urgency: penalty as % of amount, capped at -0.5
+  const penaltyBonus = amount > 0 ? Math.min((penaltyAmount / amount) * 0.5, 0.5) : 0;
+
+  return userPriority - overdueBonus - interestBonus - penaltyBonus;
 }

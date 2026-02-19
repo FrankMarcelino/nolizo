@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFamilyId } from "@/src/hooks/useFamilyId";
 
 type Category = {
   id: string;
@@ -18,7 +19,7 @@ type FamilyMember = {
 };
 
 type SplitMode = "igual" | "percentual" | "valorFixo";
-type Recurrence = "unica" | "mensal" | "anual" | "parcelado";
+type Recurrence = "unica" | "mensal" | "anual";
 
 const CATEGORY_ICONS: Record<string, string> = {
   housing: "\u{1F3E0}",
@@ -45,17 +46,14 @@ const CATEGORY_ICONS: Record<string, string> = {
   other_expense: "\u{2022}\u{2022}\u{2022}",
 };
 
-const FAMILY_ID = typeof window !== "undefined"
-  ? localStorage.getItem("familyId") ?? ""
-  : "";
-
 export default function NovaDespesaPage() {
+  const { familyId } = useFamilyId();
   const [categories, setCategories] = useState<Category[]>([]);
   const [members, setMembers] = useState<FamilyMember[]>([]);
-  const [familyId, setFamilyId] = useState(FAMILY_ID);
 
   const [amount, setAmount] = useState("");
   const [recurrence, setRecurrence] = useState<Recurrence>("unica");
+  const [totalInstallments, setTotalInstallments] = useState("12");
   const [dueDate, setDueDate] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -83,7 +81,6 @@ export default function NovaDespesaPage() {
 
   useEffect(() => {
     if (!familyId) return;
-    localStorage.setItem("familyId", familyId);
     fetch(`/api/family-members?familyId=${familyId}`)
       .then((r) => r.json())
       .then((json) => {
@@ -165,6 +162,8 @@ export default function NovaDespesaPage() {
           categoryId: selectedCategory,
           dueDate,
           description: description || undefined,
+          recurrence,
+          totalInstallments: recurrence !== "unica" ? Number(totalInstallments) : 1,
           splitMode: selectedMembers.length > 1 ? splitMode : "igual",
           responsibleMemberIds:
             selectedMembers.length > 0 ? selectedMembers : undefined,
@@ -201,37 +200,60 @@ export default function NovaDespesaPage() {
       <h1 className="text-2xl font-bold mb-6">Nova Despesa</h1>
 
       {!familyId && (
-        <div className="mb-6 rounded-xl bg-bg-card border border-border p-4">
-          <label className="block text-sm font-medium mb-1">
-            ID da Familia (configure uma vez)
-          </label>
-          <input
-            type="text"
-            placeholder="Cole o UUID da familia aqui"
-            className="w-full rounded-lg border border-border px-3 py-2 text-sm bg-bg focus:outline-none focus:border-primary"
-            onBlur={(e) => setFamilyId(e.target.value.trim())}
-          />
+        <div className="mb-6 rounded-xl bg-bg-card border border-border p-4 text-center">
+          <p className="text-sm text-text-muted mb-2">
+            Configure sua familia antes de cadastrar despesas.
+          </p>
+          <a
+            href="/configuracoes"
+            className="inline-block px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors"
+          >
+            Ir para Configuracoes
+          </a>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Recurrence */}
-        <div className="grid grid-cols-4 gap-2">
-          {(["unica", "mensal", "anual", "parcelado"] as Recurrence[]).map(
-            (r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setRecurrence(r)}
-                className={`py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
-                  recurrence === r
-                    ? "bg-primary text-white"
-                    : "bg-bg-card border border-border text-text-muted hover:border-primary"
-                }`}
-              >
-                {r}
-              </button>
-            )
+        <div>
+          <label className="block text-sm font-medium mb-2">Recorrencia</label>
+          <div className="grid grid-cols-3 gap-2">
+            {(["unica", "mensal", "anual"] as Recurrence[]).map(
+              (r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRecurrence(r)}
+                  className={`py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
+                    recurrence === r
+                      ? "bg-primary text-white"
+                      : "bg-bg-card border border-border text-text-muted hover:border-primary"
+                  }`}
+                >
+                  {r === "unica" ? "Unica" : r === "mensal" ? "Mensal" : "Anual"}
+                </button>
+              )
+            )}
+          </div>
+          {recurrence !== "unica" && (
+            <div className="mt-3">
+              <label className="block text-sm font-medium mb-1">
+                Quantidade de parcelas
+              </label>
+              <input
+                type="number"
+                min="2"
+                max="60"
+                value={totalInstallments}
+                onChange={(e) => setTotalInstallments(e.target.value)}
+                className="w-full rounded-lg border border-border px-3 py-2 bg-bg-card focus:outline-none focus:border-primary"
+              />
+              <p className="text-xs text-text-muted mt-1">
+                Serao criadas {totalInstallments} despesas de R${" "}
+                {Number(amount || 0).toFixed(2)} cada, com vencimento{" "}
+                {recurrence === "mensal" ? "mensal" : "anual"}.
+              </p>
+            </div>
           )}
         </div>
 

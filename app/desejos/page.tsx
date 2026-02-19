@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useFamilyId } from "@/src/hooks/useFamilyId";
 
 type Wish = {
   id: string;
@@ -26,14 +27,12 @@ const IMPORTANCE_COLORS: Record<string, string> = {
   baixa: "bg-text-muted",
 };
 
-const FAMILY_ID =
-  typeof window !== "undefined" ? localStorage.getItem("familyId") ?? "" : "";
-
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 export default function DesejosPage() {
+  const { familyId } = useFamilyId();
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
@@ -45,14 +44,14 @@ export default function DesejosPage() {
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    if (!FAMILY_ID) return;
-    fetch(`/api/wishes?familyId=${FAMILY_ID}`)
+    if (!familyId) return;
+    fetch(`/api/wishes?familyId=${familyId}`)
       .then((r) => r.json())
       .then((json) => {
         if (json.data) setWishes(json.data);
       })
       .catch(() => {});
-  }, []);
+  }, [familyId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -64,7 +63,7 @@ export default function DesejosPage() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          familyId: FAMILY_ID,
+          familyId,
           name,
           targetAmount: Number(targetAmount),
           importance,

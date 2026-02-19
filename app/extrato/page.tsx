@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFamilyId } from "@/src/hooks/useFamilyId";
 
 type StatementItem = {
   id: string;
@@ -39,10 +40,8 @@ function getDateRange(preset: PeriodPreset): { from: string; to: string } {
   return { from: from.toISOString().slice(0, 10), to };
 }
 
-const FAMILY_ID =
-  typeof window !== "undefined" ? localStorage.getItem("familyId") ?? "" : "";
-
 export default function ExtratoPage() {
+  const { familyId } = useFamilyId();
   const [items, setItems] = useState<StatementItem[]>([]);
   const [summary, setSummary] = useState<Summary>({
     totalIn: 0,
@@ -53,12 +52,12 @@ export default function ExtratoPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    if (!FAMILY_ID) return;
+    if (!familyId) return;
     setLoading(true);
     const { from, to } = getDateRange(period);
     try {
       const res = await fetch(
-        `/api/statement?familyId=${FAMILY_ID}&fromDate=${from}&toDate=${to}`
+        `/api/statement?familyId=${familyId}&fromDate=${from}&toDate=${to}`
       );
       const json = await res.json();
       if (json.data) setItems(json.data);
@@ -68,7 +67,7 @@ export default function ExtratoPage() {
     } finally {
       setLoading(false);
     }
-  }, [period]);
+  }, [period, familyId]);
 
   useEffect(() => {
     fetchData();

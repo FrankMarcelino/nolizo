@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useFamilyId } from "@/src/hooks/useFamilyId";
 
 type Asset = {
   id: string;
@@ -20,14 +21,12 @@ const ASSET_CATEGORIES = [
   "Outro",
 ];
 
-const FAMILY_ID =
-  typeof window !== "undefined" ? localStorage.getItem("familyId") ?? "" : "";
-
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 export default function PatrimonioPage() {
+  const { familyId } = useFamilyId();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
@@ -39,14 +38,14 @@ export default function PatrimonioPage() {
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    if (!FAMILY_ID) return;
-    fetch(`/api/assets?familyId=${FAMILY_ID}`)
+    if (!familyId) return;
+    fetch(`/api/assets?familyId=${familyId}`)
       .then((r) => r.json())
       .then((json) => {
         if (json.data) setAssets(json.data);
       })
       .catch(() => {});
-  }, []);
+  }, [familyId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,7 +57,7 @@ export default function PatrimonioPage() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          familyId: FAMILY_ID,
+          familyId,
           name,
           estimatedValue: Number(estimatedValue),
           acquisitionDate: acquisitionDate || undefined,

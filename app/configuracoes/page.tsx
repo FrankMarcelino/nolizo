@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useFamilyId } from "@/src/hooks/useFamilyId";
 
 type FamilyMember = { id: string; name: string; email: string | null; active: boolean };
 
 export default function ConfiguracoesPage() {
-  const [familyId, setFamilyId] = useState("");
+  const { familyId, saveFamilyId, clearFamilyId } = useFamilyId();
   const [familyName, setFamilyName] = useState("");
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [newMemberName, setNewMemberName] = useState("");
@@ -14,12 +15,8 @@ export default function ConfiguracoesPage() {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("familyId");
-    if (stored) {
-      setFamilyId(stored);
-      loadMembers(stored);
-    }
-  }, []);
+    if (familyId) loadMembers(familyId);
+  }, [familyId]);
 
   async function loadMembers(fid: string) {
     try {
@@ -49,8 +46,7 @@ export default function ConfiguracoesPage() {
         return;
       }
       const newId = json.data.id;
-      setFamilyId(newId);
-      localStorage.setItem("familyId", newId);
+      saveFamilyId(newId);
       setMsg("Familia criada! ID salvo automaticamente.");
     } catch {
       setMsg("Erro de conexao");
@@ -94,9 +90,7 @@ export default function ConfiguracoesPage() {
       document.getElementById("existingFamilyId") as HTMLInputElement
     )?.value?.trim();
     if (!input) return;
-    setFamilyId(input);
-    localStorage.setItem("familyId", input);
-    loadMembers(input);
+    saveFamilyId(input);
     setMsg("Familia conectada!");
   }
 
@@ -114,8 +108,7 @@ export default function ConfiguracoesPage() {
             </p>
             <button
               onClick={() => {
-                localStorage.removeItem("familyId");
-                setFamilyId("");
+                clearFamilyId();
                 setMembers([]);
                 setMsg("Desconectado.");
               }}

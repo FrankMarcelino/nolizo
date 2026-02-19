@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useFamilyId } from "@/src/hooks/useFamilyId";
 
 type Category = { id: string; name: string; type: string };
 type FamilyMember = { id: string; name: string };
 
-const FAMILY_ID =
-  typeof window !== "undefined" ? localStorage.getItem("familyId") ?? "" : "";
-
 export default function NovaEntradaPage() {
+  const { familyId } = useFamilyId();
   const [categories, setCategories] = useState<Category[]>([]);
   const [members, setMembers] = useState<FamilyMember[]>([]);
-  const [familyId] = useState(FAMILY_ID);
 
   const [amount, setAmount] = useState("");
   const [source, setSource] = useState("");

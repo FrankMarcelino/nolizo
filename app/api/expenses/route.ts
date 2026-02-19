@@ -59,27 +59,62 @@ export async function POST(request: NextRequest) {
         })
       : undefined;
 
-    const data = await createExpense({
+    const recurrence = String(body.recurrence ?? "unica");
+    const totalInstallments = recurrence === "unica" ? 1 : Math.max(1, Math.min(60, Number(body.totalInstallments ?? 12)));
+
+    const description =
+      typeof body.description === "string" && body.description.trim()
+        ? body.description
+        : undefined;
+    const status =
+      body.status === "a_vencer" ||
+      body.status === "vencida" ||
+      body.status === "paga"
+        ? body.status
+        : undefined;
+
+    const firstExpense = await createExpense({
       familyId,
       amount,
       categoryId,
       dueDate,
       splitMode,
       responsibleMemberIds,
-      description:
-        typeof body.description === "string" && body.description.trim()
-          ? body.description
-          : undefined,
-      status:
-        body.status === "a_vencer" ||
-        body.status === "vencida" ||
-        body.status === "paga"
-          ? body.status
-          : undefined,
+      description: totalInstallments > 1
+        ? `${description ?? categoryId} (1/${totalInstallments})`
+        : description,
+      status,
       shares,
     });
 
-    return NextResponse.json({ data }, { status: 201 });
+    const created = [firstExpense];
+
+    if (recurrence !== "unica" && totalInstallments > 1) {
+      for (let i = 2; i <= totalInstallments; i++) {
+        const nextDate = new Date(dueDate + "T00:00:00");
+        if (recurrence === "mensal") nextDate.setMonth(nextDate.getMonth() + (i - 1));
+        else if (recurrence === "anual") nextDate.setFullYear(nextDate.getFullYear() + (i - 1));
+        const nextDueDate = nextDate.toISOString().slice(0, 10);
+
+        const installment = await createExpense({
+          familyId,
+          amount,
+          categoryId,
+          dueDate: nextDueDate,
+          splitMode,
+          responsibleMemberIds,
+          description: `${description ?? categoryId} (${i}/${totalInstallments})`,
+          status: "a_vencer",
+          shares,
+        });
+        created.push(installment);
+      }
+    }
+
+    return NextResponse.json(
+      { data: created.length === 1 ? created[0] : created },
+      { status: 201 }
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error";
     const details =

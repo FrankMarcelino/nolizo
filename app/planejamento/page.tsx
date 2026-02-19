@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFamilyId } from "@/src/hooks/useFamilyId";
 
 type ExpenseCard = {
   id: string;
@@ -9,6 +10,10 @@ type ExpenseCard = {
   description: string | null;
   dueDate: string;
   status: string;
+  priority: number;
+  interestRate: number;
+  penaltyAmount: number;
+  hybridScore: number;
   shares: { memberId: string; percentage: number | null; fixedAmount: number | null }[];
 };
 
@@ -57,10 +62,8 @@ function formatDate(dateStr: string) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("pt-BR");
 }
 
-const FAMILY_ID =
-  typeof window !== "undefined" ? localStorage.getItem("familyId") ?? "" : "";
-
 export default function PlanejamentoPage() {
+  const { familyId } = useFamilyId();
   const [overdue, setOverdue] = useState<ExpenseCard[]>([]);
   const [upcoming, setUpcoming] = useState<ExpenseCard[]>([]);
   const [paid, setPaid] = useState<ExpenseCard[]>([]);
@@ -74,12 +77,12 @@ export default function PlanejamentoPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    if (!FAMILY_ID) return;
+    if (!familyId) return;
     setLoading(true);
     const { from, to } = getDateRange(period);
     try {
       const res = await fetch(
-        `/api/planning?familyId=${FAMILY_ID}&fromDate=${from}&toDate=${to}`
+        `/api/planning?familyId=${familyId}&fromDate=${from}&toDate=${to}`
       );
       const json = await res.json();
       if (json.overdue) setOverdue(json.overdue);
@@ -91,7 +94,7 @@ export default function PlanejamentoPage() {
     } finally {
       setLoading(false);
     }
-  }, [period]);
+  }, [period, familyId]);
 
   useEffect(() => {
     fetchData();
@@ -283,32 +286,56 @@ function KanbanColumn({
             Nenhuma divida
           </p>
         ) : (
-          items.map((item) => (
-            <div
-              key={item.id}
-              className="rounded-lg border border-border p-3 hover:border-primary transition-colors"
-            >
-              <div className="flex items-start justify-between mb-1">
-                <p className="text-sm font-medium">
-                  {item.description ?? item.categoryId}
-                </p>
-                <p className="text-sm font-bold ml-2 whitespace-nowrap">
-                  {formatCurrency(item.amount)}
-                </p>
+          items.map((item) => {
+            const daysOverdue = color === "danger"
+              ? Math.max(0, Math.floor((Date.now() - new Date(item.dueDate + "T00:00:00").getTime()) / 86_400_000))
+              : 0;
+            const priorityLabels = ["", "Maxima", "Alta", "Normal", "Baixa", "Minima"];
+            const priorityColors = ["", "text-danger", "text-warning", "text-text-muted", "text-text-muted", "text-text-muted"];
+
+            return (
+              <div
+                key={item.id}
+                className="rounded-lg border border-border p-3 hover:border-primary transition-colors"
+              >
+                <div className="flex items-start justify-between mb-1">
+                  <p className="text-sm font-medium">
+                    {item.description ?? item.categoryId}
+                  </p>
+                  <p className="text-sm font-bold ml-2 whitespace-nowrap">
+                    {formatCurrency(item.amount)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-text-muted mb-1">
+                  <span>{formatDate(item.dueDate)}</span>
+                  <span className={priorityColors[item.priority] ?? "text-text-muted"}>
+                    P{item.priority} {priorityLabels[item.priority]}
+                  </span>
+                </div>
+                {(daysOverdue > 0 || item.interestRate > 0 || item.penaltyAmount > 0) && (
+                  <div className="flex gap-2 text-xs mb-1">
+                    {daysOverdue > 0 && (
+                      <span className="text-danger font-medium">{daysOverdue}d atraso</span>
+                    )}
+                    {item.interestRate > 0 && (
+                      <span className="text-warning">Juros {item.interestRate}%</span>
+                    )}
+                    {item.penaltyAmount > 0 && (
+                      <span className="text-warning">Multa {formatCurrency(item.penaltyAmount)}</span>
+                    )}
+                  </div>
+                )}
+                {onMarkPaid && color !== "success" && (
+                  <button
+                    onClick={() => onMarkPaid(item.id)}
+                    className="mt-1 text-xs text-primary hover:text-primary-hover font-medium"
+                  >
+                    Marcar como paga
+                  </button>
+                )}
               </div>
-              <p className="text-xs text-text-muted">
-                {formatDate(item.dueDate)}
-              </p>
-              {onMarkPaid && color !== "success" && (
-                <button
-                  onClick={() => onMarkPaid(item.id)}
-                  className="mt-2 text-xs text-primary hover:text-primary-hover font-medium"
-                >
-                  Marcar como paga
-                </button>
-              )}
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
