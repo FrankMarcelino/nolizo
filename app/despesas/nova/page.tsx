@@ -206,7 +206,7 @@ export default function NovaDespesaPage() {
           </p>
           <a
             href="/configuracoes"
-            className="inline-block px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors"
+            className="inline-block px-4 py-2 rounded-lg bg-primary text-bg text-sm font-medium hover:bg-primary-hover transition-colors"
           >
             Ir para Configuracoes
           </a>
@@ -226,7 +226,7 @@ export default function NovaDespesaPage() {
                   onClick={() => setRecurrence(r)}
                   className={`py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
                     recurrence === r
-                      ? "bg-primary text-white"
+                      ? "bg-primary text-bg"
                       : "bg-bg-card border border-border text-text-muted hover:border-primary"
                   }`}
                 >
@@ -389,7 +389,7 @@ export default function NovaDespesaPage() {
                     onClick={() => setSplitMode(mode)}
                     className={`py-2 rounded-lg text-sm font-medium transition-colors ${
                       splitMode === mode
-                        ? "bg-primary text-white"
+                        ? "bg-primary text-bg"
                         : "bg-bg-card border border-border text-text-muted hover:border-primary"
                     }`}
                   >
@@ -483,7 +483,7 @@ export default function NovaDespesaPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full py-3 rounded-xl bg-primary text-white font-semibold text-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
+          className="w-full py-3 rounded-xl bg-primary text-bg font-semibold text-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
         >
           {submitting ? "Salvando..." : "Criar Despesa"}
         </button>

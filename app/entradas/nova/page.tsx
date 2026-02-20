@@ -98,7 +98,7 @@ export default function NovaEntradaPage() {
               onClick={() => setStatus(s)}
               className={`py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
                 status === s
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-bg"
                   : "bg-bg-card border border-border text-text-muted hover:border-primary"
               }`}
             >
@@ -226,7 +226,7 @@ export default function NovaEntradaPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full py-3 rounded-xl bg-primary text-white font-semibold text-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
+          className="w-full py-3 rounded-xl bg-primary text-bg font-semibold text-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
         >
           {submitting ? "Salvando..." : "Registrar Entrada"}
         </button>

@@ -32,11 +32,11 @@ type Summary = {
 type ChartItem = { name: string; value: number };
 type TrendItem = { month: string; despesas: number; entradas: number };
 
-const PIE_COLORS = ["#22c55e", "#f59e0b", "#ef4444", "#6366f1", "#06b6d4", "#ec4899"];
+const PIE_COLORS = ["#34d399", "#d4a647", "#f0544c", "#818cf8", "#22d3ee", "#f472b6"];
 const STATUS_COLORS: Record<string, string> = {
-  Pagas: "#22c55e",
-  Pendentes: "#f59e0b",
-  Vencidas: "#ef4444",
+  Pagas: "#34d399",
+  Pendentes: "#d4a647",
+  Vencidas: "#f0544c",
 };
 
 function fmt(v: number) {
@@ -86,7 +86,7 @@ export default function DashboardPage() {
         </p>
         <a
           href="/configuracoes"
-          className="inline-block px-6 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary-hover transition-colors"
+          className="inline-block px-6 py-3 rounded-xl bg-primary text-bg font-medium hover:bg-primary-hover transition-colors"
         >
           Ir para Configuracoes
         </a>
@@ -170,8 +170,8 @@ export default function DashboardPage() {
                 }}
               />
               <Legend />
-              <Bar dataKey="entradas" fill="#22c55e" radius={[4, 4, 0, 0]} name="Entradas" />
-              <Bar dataKey="despesas" fill="#ef4444" radius={[4, 4, 0, 0]} name="Despesas" />
+              <Bar dataKey="entradas" fill="#34d399" radius={[4, 4, 0, 0]} name="Entradas" />
+              <Bar dataKey="despesas" fill="#f0544c" radius={[4, 4, 0, 0]} name="Despesas" />
             </BarChart>
           </ResponsiveContainer>
         ) : (

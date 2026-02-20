@@ -98,7 +98,7 @@ export default function DesejosPage() {
         <h1 className="text-2xl font-bold">Desejos</h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors"
+          className="px-4 py-2 rounded-lg bg-primary text-bg text-sm font-medium hover:bg-primary-hover transition-colors"
         >
           {showForm ? "Cancelar" : "+ Novo desejo"}
         </button>
@@ -150,7 +150,7 @@ export default function DesejosPage() {
                   onClick={() => setImportance(imp)}
                   className={`py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
                     importance === imp
-                      ? "bg-primary text-white"
+                      ? "bg-primary text-bg"
                       : "bg-bg border border-border text-text-muted hover:border-primary"
                   }`}
                 >
@@ -181,7 +181,7 @@ export default function DesejosPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50"
+            className="w-full py-3 rounded-xl bg-primary text-bg font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50"
           >
             {submitting ? "Salvando..." : "Adicionar Desejo"}
           </button>

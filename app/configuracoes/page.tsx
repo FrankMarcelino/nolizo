@@ -129,7 +129,7 @@ export default function ConfiguracoesPage() {
                   key={m.id}
                   className="flex items-center gap-3 rounded-lg border border-border bg-bg-card p-3"
                 >
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold">
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-bg text-sm font-bold">
                     {m.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -163,7 +163,7 @@ export default function ConfiguracoesPage() {
             />
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors"
+              className="px-4 py-2 rounded-lg bg-primary text-bg text-sm font-medium hover:bg-primary-hover transition-colors"
             >
               Adicionar
             </button>
@@ -186,7 +186,7 @@ export default function ConfiguracoesPage() {
               <button
                 type="submit"
                 disabled={creating}
-                className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-primary text-bg text-sm font-medium hover:bg-primary-hover transition-colors disabled:opacity-50"
               >
                 {creating ? "Criando..." : "Criar Familia"}
               </button>
@@ -206,7 +206,7 @@ export default function ConfiguracoesPage() {
               />
               <button
                 type="submit"
-                className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors"
+                className="px-4 py-2 rounded-lg bg-primary text-bg text-sm font-medium hover:bg-primary-hover transition-colors"
               >
                 Conectar
               </button>

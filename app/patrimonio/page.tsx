@@ -93,7 +93,7 @@ export default function PatrimonioPage() {
         <h1 className="text-2xl font-bold">Patrimonio</h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors"
+          className="px-4 py-2 rounded-lg bg-primary text-bg text-sm font-medium hover:bg-primary-hover transition-colors"
         >
           {showForm ? "Cancelar" : "+ Novo bem"}
         </button>
@@ -145,7 +145,7 @@ export default function PatrimonioPage() {
                   onClick={() => setCategory(category === cat ? "" : cat)}
                   className={`py-2 rounded-lg text-sm font-medium transition-colors ${
                     category === cat
-                      ? "bg-primary text-white"
+                      ? "bg-primary text-bg"
                       : "bg-bg border border-border text-text-muted hover:border-primary"
                   }`}
                 >
@@ -176,7 +176,7 @@ export default function PatrimonioPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50"
+            className="w-full py-3 rounded-xl bg-primary text-bg font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50"
           >
             {submitting ? "Salvando..." : "Cadastrar Bem"}
           </button>

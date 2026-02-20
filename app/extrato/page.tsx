@@ -92,7 +92,7 @@ export default function ExtratoPage() {
             onClick={() => setPeriod(p)}
             className={`py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
               period === p
-                ? "bg-primary text-white"
+                ? "bg-primary text-bg"
                 : "bg-bg-card border border-border text-text-muted hover:border-primary"
             }`}
           >
