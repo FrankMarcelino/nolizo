@@ -28,10 +28,10 @@ export async function GET(request: NextRequest) {
 
         client
           .from("inflows")
-          .select("id, amount, status, received_date")
+          .select("id, amount, status, inflow_date")
           .eq("family_id", familyId)
-          .gte("received_date", monthStart)
-          .lte("received_date", monthEnd),
+          .gte("inflow_date", monthStart)
+          .lte("inflow_date", monthEnd),
 
         client
           .from("expenses")
@@ -62,11 +62,11 @@ export async function GET(request: NextRequest) {
         // Last 6 months of inflows for trend chart
         client
           .from("inflows")
-          .select("amount, received_date")
+          .select("amount, inflow_date")
           .eq("family_id", familyId)
-          .gte("received_date", new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString().slice(0, 10))
-          .lte("received_date", monthEnd)
-          .order("received_date"),
+          .gte("inflow_date", new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString().slice(0, 10))
+          .lte("inflow_date", monthEnd)
+          .order("inflow_date"),
       ]);
 
     const expenses = expensesRes.data ?? [];
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
         .filter((e) => (e.due_date as string).startsWith(key))
         .reduce((s, e) => s + Number(e.amount), 0);
       const infTotal = monthlyInflows
-        .filter((i) => (i.received_date as string).startsWith(key))
+        .filter((i) => (i.inflow_date as string).startsWith(key))
         .reduce((s, i) => s + Number(i.amount), 0);
 
       trend.push({
