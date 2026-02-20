@@ -59,6 +59,11 @@ export async function POST(request: NextRequest) {
         })
       : undefined;
 
+    const expenseType =
+      body.expenseType === "fixa" || body.expenseType === "variavel"
+        ? body.expenseType
+        : "variavel" as const;
+
     const recurrence = String(body.recurrence ?? "unica");
     const totalInstallments = recurrence === "unica" ? 1 : Math.max(1, Math.min(60, Number(body.totalInstallments ?? 12)));
 
@@ -80,6 +85,7 @@ export async function POST(request: NextRequest) {
       dueDate,
       splitMode,
       responsibleMemberIds,
+      expenseType,
       description: totalInstallments > 1
         ? `${description ?? categoryId} (1/${totalInstallments})`
         : description,
@@ -103,6 +109,7 @@ export async function POST(request: NextRequest) {
           dueDate: nextDueDate,
           splitMode,
           responsibleMemberIds,
+          expenseType,
           description: `${description ?? categoryId} (${i}/${totalInstallments})`,
           status: "a_vencer",
           shares,

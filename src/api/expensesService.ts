@@ -8,6 +8,8 @@ import { createSupabaseAdminClient } from "../lib/supabaseAdmin";
 
 export type ExpenseStatus = "a_vencer" | "vencida" | "paga";
 
+export type ExpenseKind = "fixa" | "variavel";
+
 export interface CreateExpenseInput {
   familyId: string;
   amount: number;
@@ -15,6 +17,7 @@ export interface CreateExpenseInput {
   description?: string;
   dueDate: string;
   status?: ExpenseStatus;
+  expenseType?: ExpenseKind;
   splitMode: "igual" | "percentual" | "valorFixo";
   responsibleMemberIds: string[];
   shares?: ResponsibilityShare[];
@@ -74,7 +77,8 @@ export async function createExpense(input: CreateExpenseInput): Promise<ExpenseR
     p_status: input.status ?? "a_vencer",
     p_split_mode: input.splitMode,
     p_responsible_member_ids: input.responsibleMemberIds,
-    p_shares: shares
+    p_shares: shares,
+    p_expense_type: input.expenseType ?? "variavel",
   });
 
   if (error) {

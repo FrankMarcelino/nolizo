@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     let expensesQuery = client
       .from("expenses")
-      .select("id,amount,category_id,description,due_date,status")
+      .select("*")
       .eq("family_id", familyId);
     if (fromDate) expensesQuery = expensesQuery.gte("due_date", fromDate);
     if (toDate) expensesQuery = expensesQuery.lte("due_date", toDate);
@@ -38,23 +38,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: inflowsResult.error.message }, { status: 500 });
 
     const items = [
-      ...(expensesResult.data ?? []).map((e) => ({
+      ...(expensesResult.data ?? []).map((e: Record<string, unknown>) => ({
         id: e.id,
         type: "saida" as const,
         amount: Number(e.amount),
         categoryId: e.category_id,
-        description: e.description ?? null,
-        date: e.due_date,
-        status: e.status,
+        description: (e.description as string) ?? null,
+        date: e.due_date as string,
+        status: e.status as string,
+        expenseType: (e.expense_type as string) ?? "variavel",
+        recurrence: (e.recurrence as string) ?? "unica",
+        installmentNumber: (e.installment_number as number) ?? null,
+        totalInstallments: (e.total_installments as number) ?? null,
       })),
-      ...(inflowsResult.data ?? []).map((i) => ({
+      ...(inflowsResult.data ?? []).map((i: Record<string, unknown>) => ({
         id: i.id,
         type: "entrada" as const,
         amount: Number(i.amount),
         categoryId: i.category_id,
-        description: i.source,
-        date: i.inflow_date,
-        status: i.status,
+        description: i.source as string,
+        date: i.inflow_date as string,
+        status: i.status as string,
+        expenseType: null,
+        recurrence: null,
+        installmentNumber: null,
+        totalInstallments: null,
       })),
     ].sort((a, b) => b.date.localeCompare(a.date));
 
