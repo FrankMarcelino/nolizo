@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/src/lib/supabaseAdmin";
+import { getSessionWithFamily } from "@/src/lib/getSession";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { familyId } = await getSessionWithFamily();
     const { id } = await params;
     const body = (await request.json()) as Record<string, unknown>;
 
@@ -25,6 +27,7 @@ export async function POST(
       .from("expenses")
       .select("*")
       .eq("id", id)
+      .eq("family_id", familyId)
       .single();
 
     if (fetchErr || !original) {
@@ -108,7 +111,8 @@ export async function POST(
       { status: 201 }
     );
   } catch (error) {
+    const status = (error as Error & { status?: number }).status ?? 500;
     const msg = error instanceof Error ? error.message : "Unexpected error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status });
   }
 }

@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/src/lib/supabaseAdmin";
+import { getSessionWithFamily } from "@/src/lib/getSession";
 
 export async function GET(request: NextRequest) {
   try {
+    const { familyId } = await getSessionWithFamily();
     const { searchParams } = request.nextUrl;
-    const familyId = searchParams.get("familyId");
-    if (!familyId)
-      return NextResponse.json({ error: "familyId is required" }, { status: 400 });
 
     const fromDate = searchParams.get("fromDate");
     const toDate = searchParams.get("toDate");
@@ -50,6 +49,9 @@ export async function GET(request: NextRequest) {
         recurrence: (e.recurrence as string) ?? "unica",
         installmentNumber: (e.installment_number as number) ?? null,
         totalInstallments: (e.total_installments as number) ?? null,
+        hasContract: Boolean(e.has_contract),
+        contractStartDate: (e.contract_start_date as string) ?? null,
+        contractEndDate: (e.contract_end_date as string) ?? null,
       })),
       ...(inflowsResult.data ?? []).map((i: Record<string, unknown>) => ({
         id: i.id,
@@ -63,6 +65,9 @@ export async function GET(request: NextRequest) {
         recurrence: null,
         installmentNumber: null,
         totalInstallments: null,
+        hasContract: false,
+        contractStartDate: null,
+        contractEndDate: null,
       })),
     ].sort((a, b) => b.date.localeCompare(a.date));
 
@@ -78,7 +83,8 @@ export async function GET(request: NextRequest) {
       summary: { totalIn, totalOut, balance: totalIn - totalOut },
     });
   } catch (error) {
+    const status = (error as Error & { status?: number }).status ?? 500;
     const msg = error instanceof Error ? error.message : "Unexpected error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status });
   }
 }

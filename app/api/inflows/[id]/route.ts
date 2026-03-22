@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/src/lib/supabaseAdmin";
+import { getSessionWithFamily } from "@/src/lib/getSession";
 
 const VALID_STATUSES = ["confirmada", "projetada"] as const;
 
@@ -8,6 +9,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { familyId } = await getSessionWithFamily();
     const { id } = await params;
     const body = (await request.json()) as Record<string, unknown>;
 
@@ -62,14 +64,16 @@ export async function PATCH(
       .from("inflows")
       .update(update)
       .eq("id", id)
+      .eq("family_id", familyId)
       .select()
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ data });
   } catch (error) {
+    const status = (error as Error & { status?: number }).status ?? 500;
     const msg = error instanceof Error ? error.message : "Unexpected error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status });
   }
 }
 
@@ -78,13 +82,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { familyId } = await getSessionWithFamily();
     const { id } = await params;
     const client = createSupabaseAdminClient();
-    const { error } = await client.from("inflows").delete().eq("id", id);
+    const { error } = await client
+      .from("inflows")
+      .delete()
+      .eq("id", id)
+      .eq("family_id", familyId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch (error) {
+    const status = (error as Error & { status?: number }).status ?? 500;
     const msg = error instanceof Error ? error.message : "Unexpected error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status });
   }
 }

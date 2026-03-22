@@ -78,6 +78,9 @@ export default function NovaDespesaPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [description, setDescription] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [hasContract, setHasContract] = useState(false);
+  const [contractStart, setContractStart] = useState("");
+  const [contractEnd, setContractEnd] = useState("");
   const [splitMode, setSplitMode] = useState<SplitMode>("igual");
   const [percentages, setPercentages] = useState<Record<string, string>>({});
   const [fixedAmounts, setFixedAmounts] = useState<Record<string, string>>({});
@@ -202,6 +205,14 @@ export default function NovaDespesaPage() {
         return;
       }
     }
+    if (hasContract && (!contractStart || !contractEnd)) {
+      setErrorMsg("Informe as datas de inicio e fim do contrato");
+      return;
+    }
+    if (hasContract && contractStart && contractEnd && contractEnd < contractStart) {
+      setErrorMsg("A data fim do contrato deve ser posterior a data de inicio");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -215,6 +226,9 @@ export default function NovaDespesaPage() {
           dueDate,
           description: description || undefined,
           expenseType,
+          hasContract,
+          contractStartDate: hasContract ? contractStart : undefined,
+          contractEndDate: hasContract ? contractEnd : undefined,
           recurrence: getApiRecurrence(),
           totalInstallments: getApiInstallments(),
           splitMode: selectedMembers.length > 1 ? splitMode : "igual",
@@ -236,6 +250,9 @@ export default function NovaDespesaPage() {
       setDueDate("");
       setSelectedCategory("");
       setDescription("");
+      setHasContract(false);
+      setContractStart("");
+      setContractEnd("");
       setSelectedMembers([]);
       setPercentages({});
       setFixedAmounts({});
@@ -368,6 +385,65 @@ export default function NovaDespesaPage() {
                   {recurrence === "parcelado"
                     ? `${totalInstallments}x de R$ ${(amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
                     : `${totalInstallments} lancamentos de R$ ${amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── Contrato ── */}
+        <div>
+          <label className="block text-xs font-medium text-text-muted mb-2">
+            Tem contrato?
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {([
+              [false, "Nao"],
+              [true, "Sim"],
+            ] as [boolean, string][]).map(([val, label]) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setHasContract(val)}
+                className={`py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                  hasContract === val
+                    ? "bg-primary text-bg"
+                    : "bg-bg-card border border-border text-text-muted hover:border-primary"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {hasContract && (
+            <div className="mt-3 rounded-xl border border-primary/30 bg-primary-light px-4 py-3 space-y-3">
+              <p className="text-xs font-medium text-primary">
+                Vigencia do contrato
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">Inicio *</label>
+                  <input
+                    type="date"
+                    value={contractStart}
+                    onChange={(e) => setContractStart(e.target.value)}
+                    className="w-full text-sm font-medium bg-bg rounded-lg border border-border px-3 py-2 focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">Fim *</label>
+                  <input
+                    type="date"
+                    value={contractEnd}
+                    onChange={(e) => setContractEnd(e.target.value)}
+                    min={contractStart || undefined}
+                    className="w-full text-sm font-medium bg-bg rounded-lg border border-border px-3 py-2 focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              {contractStart && contractEnd && contractEnd >= contractStart && (
+                <p className="text-xs text-text-muted">
+                  Duracao: {Math.ceil((new Date(contractEnd + "T00:00:00").getTime() - new Date(contractStart + "T00:00:00").getTime()) / 86400000)} dias
                 </p>
               )}
             </div>

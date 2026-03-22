@@ -1,12 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/src/lib/supabaseAdmin";
+import { getSessionWithFamily } from "@/src/lib/getSession";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const familyId = request.nextUrl.searchParams.get("familyId");
-    if (!familyId)
-      return NextResponse.json({ error: "familyId is required" }, { status: 400 });
-
+    const { familyId } = await getSessionWithFamily();
     const client = createSupabaseAdminClient();
 
     const now = new Date();
@@ -50,7 +48,6 @@ export async function GET(request: NextRequest) {
           .select("id, estimated_value, category")
           .eq("family_id", familyId),
 
-        // Last 6 months of expenses for trend chart
         client
           .from("expenses")
           .select("amount, due_date")
@@ -59,7 +56,6 @@ export async function GET(request: NextRequest) {
           .lte("due_date", monthEnd)
           .order("due_date"),
 
-        // Last 6 months of inflows for trend chart
         client
           .from("inflows")
           .select("amount, inflow_date")
@@ -88,7 +84,6 @@ export async function GET(request: NextRequest) {
     const totalWishes = wishes.reduce((s, w) => s + Number(w.target_amount), 0);
     const totalAssets = assets.reduce((s, a) => s + Number(a.estimated_value), 0);
 
-    // Expense breakdown by category (top 5)
     const catMap = new Map<string, number>();
     for (const e of expenses) {
       const cat = e.category_id ?? "sem_categoria";
@@ -99,7 +94,6 @@ export async function GET(request: NextRequest) {
       .slice(0, 6)
       .map(([name, value]) => ({ name, value: Math.round(value * 100) / 100 }));
 
-    // Monthly trend (last 6 months)
     const MONTHS_PT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
     const trend: { month: string; despesas: number; entradas: number }[] = [];
     for (let i = 5; i >= 0; i--) {
@@ -121,14 +115,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Status breakdown for pie chart
     const statusBreakdown = [
       { name: "Pagas", value: paidMonth },
       { name: "Pendentes", value: expenses.filter((e) => e.status === "a_vencer").reduce((s, e) => s + Number(e.amount), 0) },
       { name: "Vencidas", value: expenses.filter((e) => e.status === "vencida").reduce((s, e) => s + Number(e.amount), 0) },
     ].filter((s) => s.value > 0);
 
-    // Assets by category for pie chart
     const assetCatMap = new Map<string, number>();
     for (const a of assets) {
       const cat = a.category ?? "Outro";
@@ -159,7 +151,8 @@ export async function GET(request: NextRequest) {
       assetBreakdown,
     });
   } catch (error) {
+    const status = (error as Error & { status?: number }).status ?? 500;
     const msg = error instanceof Error ? error.message : "Unexpected error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status });
   }
 }

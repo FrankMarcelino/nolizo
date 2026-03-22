@@ -15,6 +15,9 @@ type StatementItem = {
   recurrence: string | null;
   installmentNumber: number | null;
   totalInstallments: number | null;
+  hasContract: boolean;
+  contractStartDate: string | null;
+  contractEndDate: string | null;
 };
 
 type Category = { id: string; name: string; type: string };
@@ -196,6 +199,7 @@ function StatementCard({
   } else if (isSaida && item.recurrence && item.recurrence !== "unica") {
     tags.push(item.recurrence.charAt(0).toUpperCase() + item.recurrence.slice(1));
   }
+  if (isSaida && item.hasContract) tags.push("Contrato");
 
   return (
     <button
@@ -261,6 +265,13 @@ function StatementCard({
               </span>
             )}
           </div>
+
+          {/* Contract dates */}
+          {isSaida && item.hasContract && item.contractStartDate && item.contractEndDate && (
+            <p className="text-[10px] text-text-muted mt-1.5">
+              Contrato: {new Date(item.contractStartDate + "T00:00:00").toLocaleDateString("pt-BR")} — {new Date(item.contractEndDate + "T00:00:00").toLocaleDateString("pt-BR")}
+            </p>
+          )}
         </div>
       </div>
     </button>
@@ -299,6 +310,10 @@ function EditModal({
   const [installmentCount, setInstallmentCount] = useState(
     String(item.totalInstallments ?? 12)
   );
+
+  const [hasContract, setHasContract] = useState(item.hasContract ?? false);
+  const [contractStart, setContractStart] = useState(item.contractStartDate ?? "");
+  const [contractEnd, setContractEnd] = useState(item.contractEndDate ?? "");
 
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -346,6 +361,9 @@ function EditModal({
         payload.dueDate = date;
         payload.expenseType = expenseType;
         payload.recurrence = recurrence === "parcelado" ? "mensal" : recurrence;
+        payload.hasContract = hasContract;
+        payload.contractStartDate = hasContract ? contractStart || null : null;
+        payload.contractEndDate = hasContract ? contractEnd || null : null;
       }
 
       const res = await fetch(endpoint, {
@@ -511,6 +529,43 @@ function EditModal({
                         ? `${installmentCount}x de R$ ${parseCurrencyToNumber(amountDisplay).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
                         : `${installmentCount} lancamentos de R$ ${parseCurrencyToNumber(amountDisplay).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                       {" · "}Data inicio: {new Date(date + "T00:00:00").toLocaleDateString("pt-BR")}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Contrato */}
+          {!isEntrada && (
+            <div>
+              <label className="block text-xs font-medium text-text-muted mb-2">Tem contrato?</label>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  [false, "Nao"],
+                  [true, "Sim"],
+                ] as [boolean, string][]).map(([val, label]) => (
+                  <button key={label} type="button" onClick={() => setHasContract(val)} className={`py-2.5 rounded-xl text-sm font-semibold transition-colors ${hasContract === val ? "bg-primary text-bg" : "bg-bg-card border border-border text-text-muted hover:border-primary"}`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {hasContract && (
+                <div className="mt-3 rounded-xl border border-primary/30 bg-primary-light px-4 py-3 space-y-3">
+                  <p className="text-xs font-medium text-primary">Vigencia do contrato</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-text-muted mb-1">Inicio</label>
+                      <input type="date" value={contractStart} onChange={(e) => setContractStart(e.target.value)} className="w-full text-sm font-medium bg-bg rounded-lg border border-border px-3 py-2 focus:outline-none focus:border-primary" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-text-muted mb-1">Fim</label>
+                      <input type="date" value={contractEnd} onChange={(e) => setContractEnd(e.target.value)} min={contractStart || undefined} className="w-full text-sm font-medium bg-bg rounded-lg border border-border px-3 py-2 focus:outline-none focus:border-primary" />
+                    </div>
+                  </div>
+                  {contractStart && contractEnd && contractEnd >= contractStart && (
+                    <p className="text-xs text-text-muted">
+                      Duracao: {Math.ceil((new Date(contractEnd + "T00:00:00").getTime() - new Date(contractStart + "T00:00:00").getTime()) / 86400000)} dias
                     </p>
                   )}
                 </div>

@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createInflow, listInflows } from "@/src/api/inflowsService";
+import { getSessionWithFamily } from "@/src/lib/getSession";
 
 export async function GET(request: NextRequest) {
   try {
+    const { familyId } = await getSessionWithFamily();
     const { searchParams } = request.nextUrl;
-    const familyId = searchParams.get("familyId");
-    if (!familyId)
-      return NextResponse.json({ error: "familyId is required" }, { status: 400 });
 
     const data = await listInflows({
       familyId,
@@ -15,23 +14,25 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json({ data });
   } catch (error) {
+    const status = (error as Error & { status?: number }).status ?? 500;
     const msg = error instanceof Error ? error.message : "Unexpected error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const { familyId } = await getSessionWithFamily();
     const body = (await request.json()) as Record<string, unknown>;
-    const familyId = String(body.familyId ?? "");
+
     const amount = Number(body.amount ?? 0);
     const categoryId = String(body.categoryId ?? "");
     const source = String(body.source ?? "");
     const inflowDate = String(body.inflowDate ?? "");
 
-    if (!familyId || !categoryId || !inflowDate || !source) {
+    if (!categoryId || !inflowDate || !source) {
       return NextResponse.json(
-        { error: "familyId, categoryId, source and inflowDate are required" },
+        { error: "categoryId, source and inflowDate are required" },
         { status: 400 }
       );
     }
@@ -53,7 +54,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
+    const status = (error as Error & { status?: number }).status ?? 400;
     const msg = error instanceof Error ? error.message : "Unexpected error";
-    return NextResponse.json({ error: msg }, { status: 400 });
+    return NextResponse.json({ error: msg }, { status });
   }
 }

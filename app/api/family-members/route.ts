@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/src/lib/supabaseAdmin";
+import { getSessionWithFamily } from "@/src/lib/getSession";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const familyId = request.nextUrl.searchParams.get("familyId");
-    if (!familyId)
-      return NextResponse.json({ error: "familyId is required" }, { status: 400 });
-
+    const { familyId } = await getSessionWithFamily();
     const client = createSupabaseAdminClient();
     const { data, error } = await client
       .from("family_members")
@@ -18,22 +16,20 @@ export async function GET(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ data });
   } catch (error) {
+    const status = (error as Error & { status?: number }).status ?? 500;
     const msg = error instanceof Error ? error.message : "Unexpected error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const { familyId } = await getSessionWithFamily();
     const body = (await request.json()) as Record<string, unknown>;
-    const familyId = String(body.familyId ?? "").trim();
     const name = String(body.name ?? "").trim();
 
-    if (!familyId || !name) {
-      return NextResponse.json(
-        { error: "familyId and name are required" },
-        { status: 400 }
-      );
+    if (!name) {
+      return NextResponse.json({ error: "name is required" }, { status: 400 });
     }
 
     const client = createSupabaseAdminClient();
@@ -50,7 +46,8 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
+    const status = (error as Error & { status?: number }).status ?? 500;
     const msg = error instanceof Error ? error.message : "Unexpected error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status });
   }
 }

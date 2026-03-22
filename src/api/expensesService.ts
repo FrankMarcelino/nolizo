@@ -18,6 +18,9 @@ export interface CreateExpenseInput {
   dueDate: string;
   status?: ExpenseStatus;
   expenseType?: ExpenseKind;
+  hasContract?: boolean;
+  contractStartDate?: string;
+  contractEndDate?: string;
   splitMode: "igual" | "percentual" | "valorFixo";
   responsibleMemberIds: string[];
   shares?: ResponsibilityShare[];
@@ -83,6 +86,18 @@ export async function createExpense(input: CreateExpenseInput): Promise<ExpenseR
 
   if (error) {
     throw new Error(`Supabase error: ${error.message}`);
+  }
+
+  if (input.hasContract) {
+    await client
+      .from("expenses")
+      .update({
+        has_contract: true,
+        contract_start_date: input.contractStartDate ?? null,
+        contract_end_date: input.contractEndDate ?? null,
+      })
+      .eq("id", data.id)
+      .then(() => {});
   }
 
   return {

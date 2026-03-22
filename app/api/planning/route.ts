@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/src/lib/supabaseAdmin";
+import { getSessionWithFamily } from "@/src/lib/getSession";
 
 export async function GET(request: NextRequest) {
   try {
+    const { familyId } = await getSessionWithFamily();
     const { searchParams } = request.nextUrl;
-    const familyId = searchParams.get("familyId");
-    if (!familyId)
-      return NextResponse.json({ error: "familyId is required" }, { status: 400 });
 
     const fromDate = searchParams.get("fromDate");
     const toDate = searchParams.get("toDate");
@@ -82,8 +81,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    const status = (error as Error & { status?: number }).status ?? 500;
     const msg = error instanceof Error ? error.message : "Unexpected error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status });
   }
 }
 
@@ -108,13 +108,6 @@ function mapExpense(row: Record<string, unknown>) {
   };
 }
 
-/**
- * Hybrid priority score (lower = more urgent).
- * Combines user-defined priority (1-5) with automated urgency factors:
- * - Days overdue (more overdue = higher urgency)
- * - Interest rate (higher rate = higher urgency)
- * - Penalty amount relative to expense (higher = higher urgency)
- */
 function computeHybridScore(row: Record<string, unknown>, today: string): number {
   const userPriority = Number(row.priority ?? 3);
   const dueDate = row.due_date as string;
@@ -126,13 +119,8 @@ function computeHybridScore(row: Record<string, unknown>, today: string): number
   const todayMs = new Date(today + "T00:00:00").getTime();
   const daysOverdue = Math.max(0, (todayMs - dueMs) / 86_400_000);
 
-  // Urgency bonus: each overdue day reduces score by 0.05, capped at -2.5 (50 days)
   const overdueBonus = Math.min(daysOverdue * 0.05, 2.5);
-
-  // Interest urgency: higher interest = more urgent, capped at -1.0
   const interestBonus = Math.min(interestRate * 0.1, 1.0);
-
-  // Penalty urgency: penalty as % of amount, capped at -0.5
   const penaltyBonus = amount > 0 ? Math.min((penaltyAmount / amount) * 0.5, 0.5) : 0;
 
   return userPriority - overdueBonus - interestBonus - penaltyBonus;
