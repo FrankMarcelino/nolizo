@@ -5,6 +5,7 @@ export type Session = {
   userId: string;
   familyId: string | null;
   email: string | null;
+  name: string | null;
 };
 
 /**
@@ -36,6 +37,7 @@ export async function getSession(): Promise<Session> {
     userId: user.id,
     familyId: member?.family_id ?? null,
     email: user.email ?? null,
+    name: (user.user_metadata?.name as string) ?? null,
   };
 }
 

@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-const NO_PADDING_ROUTES = ["/", "/login"];
+const NO_PADDING_ROUTES = ["/", "/login", "/onboarding"];
 
 export function MainWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

@@ -27,7 +27,7 @@ export function NavBar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  if (pathname === "/login" || pathname === "/") return null;
+  if (pathname === "/login" || pathname === "/" || pathname.startsWith("/onboarding")) return null;
 
   async function handleLogout() {
     const supabase = createSupabaseBrowserClient();

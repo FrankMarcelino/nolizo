@@ -48,6 +48,24 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Skip family check on onboarding itself
+  if (pathname.startsWith("/onboarding")) {
+    return supabaseResponse;
+  }
+
+  // Redirect users with no family to onboarding
+  // Query uses anon client + user JWT — RLS filters to user's own records
+  const { data: member } = await supabase
+    .from("family_members")
+    .select("id")
+    .maybeSingle();
+
+  if (!member) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/onboarding";
+    return NextResponse.redirect(url);
+  }
+
   return supabaseResponse;
 }
 
