@@ -1,63 +1,46 @@
-import { createServerClient } from "@supabase/ssr";
-import { type NextRequest, NextResponse } from "next/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
+import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  // Refresh session — required by @supabase/ssr
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+export default clerkMiddleware(async (auth, request) => {
   const { pathname } = request.nextUrl;
 
-  // Public routes — no auth required
+  // Rotas publicas — as rotas de API cuidam da propria autenticacao via getSession()
   if (
     pathname === "/" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/api/")
   ) {
-    return supabaseResponse;
+    return NextResponse.next();
   }
 
-  // Redirect unauthenticated users to login
-  if (!user) {
+  const { userId, getToken } = await auth();
+
+  if (!userId) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Skip family check on onboarding itself
+  // O onboarding e onde a familia e criada — nao checar familia aqui
   if (pathname.startsWith("/onboarding")) {
-    return supabaseResponse;
+    return NextResponse.next();
   }
 
-  // Redirect users with no family to onboarding
-  // Query uses anon client + user JWT — RLS filters to user's own records
+  // Token do Clerk repassado ao Supabase: as politicas de RLS leem auth.jwt()->>'sub'
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { accessToken: async () => (await getToken()) ?? null }
+  );
+
+  // Filtrar por user_id explicitamente. Confiar so no RLS quebraria quando a
+  // familia tiver mais de um membro: maybeSingle() lanca erro com 2+ linhas.
   const { data: member } = await supabase
     .from("family_members")
     .select("id")
+    .eq("user_id", userId)
+    .eq("active", true)
     .maybeSingle();
 
   if (!member) {
@@ -66,11 +49,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return supabaseResponse;
-}
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
   ],
 };
