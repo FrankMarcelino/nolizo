@@ -1,14 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("./supabase/server", () => ({
-  createSupabaseServerClient: vi.fn(),
+vi.mock("@clerk/nextjs/server", () => ({
+  auth: vi.fn(),
+  currentUser: vi.fn(),
 }));
 vi.mock("./supabaseAdmin", () => ({
   createSupabaseAdminClient: vi.fn(),
 }));
 
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { getSession, getSessionWithFamily } from "./getSession";
-import { createSupabaseServerClient } from "./supabase/server";
 import { createSupabaseAdminClient } from "./supabaseAdmin";
 
 type Member = { family_id: string } | null;
@@ -22,26 +23,32 @@ function fakeAdmin(member: Member) {
   return { from: () => chain };
 }
 
-function fakeServer(user: unknown, error: unknown = null) {
-  return { auth: { getUser: async () => ({ data: { user }, error }) } };
-}
+const CLERK_USER_ID = "user_2abcDEF";
 
-const USER = {
-  id: "11111111-1111-1111-1111-111111111111",
-  email: "frank@example.com",
-  user_metadata: { name: "Frank" },
+const CLERK_USER = {
+  primaryEmailAddress: { emailAddress: "frank@example.com" },
+  fullName: "Frank",
 };
 
+function signedIn() {
+  vi.mocked(auth).mockResolvedValue({ userId: CLERK_USER_ID } as never);
+  vi.mocked(currentUser).mockResolvedValue(CLERK_USER as never);
+}
+
+function signedOut() {
+  vi.mocked(auth).mockResolvedValue({ userId: null } as never);
+  vi.mocked(currentUser).mockResolvedValue(null as never);
+}
+
 beforeEach(() => {
-  vi.mocked(createSupabaseServerClient).mockReset();
+  vi.mocked(auth).mockReset();
+  vi.mocked(currentUser).mockReset();
   vi.mocked(createSupabaseAdminClient).mockReset();
 });
 
 describe("getSession — contrato consumido pelas 14 rotas de API", () => {
   it("devolve userId, familyId, email e name quando ha familia", async () => {
-    vi.mocked(createSupabaseServerClient).mockResolvedValue(
-      fakeServer(USER) as never
-    );
+    signedIn();
     vi.mocked(createSupabaseAdminClient).mockReturnValue(
       fakeAdmin({ family_id: "fam-1" }) as never
     );
@@ -49,7 +56,7 @@ describe("getSession — contrato consumido pelas 14 rotas de API", () => {
     const session = await getSession();
 
     expect(session).toEqual({
-      userId: "11111111-1111-1111-1111-111111111111",
+      userId: CLERK_USER_ID,
       familyId: "fam-1",
       email: "frank@example.com",
       name: "Frank",
@@ -57,9 +64,7 @@ describe("getSession — contrato consumido pelas 14 rotas de API", () => {
   });
 
   it("devolve familyId null quando o usuario nao tem familia", async () => {
-    vi.mocked(createSupabaseServerClient).mockResolvedValue(
-      fakeServer(USER) as never
-    );
+    signedIn();
     vi.mocked(createSupabaseAdminClient).mockReturnValue(
       fakeAdmin(null) as never
     );
@@ -67,13 +72,11 @@ describe("getSession — contrato consumido pelas 14 rotas de API", () => {
     const session = await getSession();
 
     expect(session.familyId).toBeNull();
-    expect(session.userId).toBe("11111111-1111-1111-1111-111111111111");
+    expect(session.userId).toBe(CLERK_USER_ID);
   });
 
   it("lanca erro 401 quando nao ha usuario autenticado", async () => {
-    vi.mocked(createSupabaseServerClient).mockResolvedValue(
-      fakeServer(null) as never
-    );
+    signedOut();
     vi.mocked(createSupabaseAdminClient).mockReturnValue(
       fakeAdmin(null) as never
     );
@@ -84,9 +87,7 @@ describe("getSession — contrato consumido pelas 14 rotas de API", () => {
 
 describe("getSessionWithFamily", () => {
   it("lanca erro 403 quando o usuario nao tem familia", async () => {
-    vi.mocked(createSupabaseServerClient).mockResolvedValue(
-      fakeServer(USER) as never
-    );
+    signedIn();
     vi.mocked(createSupabaseAdminClient).mockReturnValue(
       fakeAdmin(null) as never
     );
@@ -95,9 +96,7 @@ describe("getSessionWithFamily", () => {
   });
 
   it("devolve a sessao com familyId garantido quando ha familia", async () => {
-    vi.mocked(createSupabaseServerClient).mockResolvedValue(
-      fakeServer(USER) as never
-    );
+    signedIn();
     vi.mocked(createSupabaseAdminClient).mockReturnValue(
       fakeAdmin({ family_id: "fam-1" }) as never
     );
