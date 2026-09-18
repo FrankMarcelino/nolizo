@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 
 const NAV_ITEMS = [
@@ -25,14 +25,12 @@ const MOBILE_NAV = [
 
 export function NavBar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { signOut } = useClerk();
 
   if (pathname === "/login" || pathname === "/" || pathname.startsWith("/onboarding")) return null;
 
   async function handleLogout() {
-    await signOut();
-    router.push("/login");
+    await signOut({ redirectUrl: "/login" });
   }
 
   return (

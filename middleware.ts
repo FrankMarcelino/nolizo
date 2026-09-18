@@ -36,12 +36,19 @@ export default clerkMiddleware(async (auth, request) => {
 
   // Filtrar por user_id explicitamente. Confiar so no RLS quebraria quando a
   // familia tiver mais de um membro: maybeSingle() lanca erro com 2+ linhas.
-  const { data: member } = await supabase
+  const { data: member, error } = await supabase
     .from("family_members")
     .select("id")
     .eq("user_id", userId)
     .eq("active", true)
     .maybeSingle();
+
+  if (error) {
+    console.error("middleware: falha ao consultar family_members", error);
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
 
   if (!member) {
     const url = request.nextUrl.clone();
