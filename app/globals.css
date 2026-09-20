@@ -29,3 +29,12 @@ body {
 input, select, textarea {
   color-scheme: dark;
 }
+
+/* Safe-area do iPhone. So tem efeito com viewport-fit=cover, que entra na Task 4. */
+.pb-safe {
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}

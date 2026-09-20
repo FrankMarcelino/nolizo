@@ -1,33 +1,19 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
-
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Inicio" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/planejamento", label: "Planejamento" },
-  { href: "/despesas/nova", label: "Nova Despesa" },
-  { href: "/entradas/nova", label: "Nova Entrada" },
-  { href: "/extrato", label: "Extrato" },
-  { href: "/desejos", label: "Desejos" },
-  { href: "/patrimonio", label: "Patrimonio" },
-  { href: "/configuracoes", label: "Configuracoes" },
-];
-
-const MOBILE_NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/planejamento", label: "Plano" },
-  { href: "/despesas/nova", label: "Despesa" },
-  { href: "/extrato", label: "Extrato" },
-  { href: "/configuracoes", label: "Config" },
-];
+import { DESKTOP_NAV, MOBILE_NAV, isActive, HIDDEN_ROUTES } from "./nav-items";
+import { NavIcon } from "./NavIcons";
 
 export function NavBar() {
   const pathname = usePathname();
   const { signOut } = useClerk();
 
-  if (pathname === "/login" || pathname === "/" || pathname.startsWith("/onboarding")) return null;
+  const hidden = HIDDEN_ROUTES.some((r) =>
+    r === "/" ? pathname === "/" : pathname.startsWith(r)
+  );
+  if (hidden) return null;
 
   async function handleLogout() {
     await signOut({ redirectUrl: "/login" });
@@ -35,19 +21,29 @@ export function NavBar() {
 
   return (
     <>
+      {/* Lateral: tablet e desktop */}
       <nav className="hidden md:flex flex-col w-56 border-r border-border bg-bg-card p-4 gap-1 shrink-0">
-        <a href="/" className="text-xl font-bold text-primary mb-6">
+        <Link href="/dashboard" className="text-xl font-bold text-primary mb-6">
           Nolizo
-        </a>
-        {NAV_ITEMS.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className="px-3 py-2 rounded-lg text-sm font-medium text-text-muted hover:bg-primary-light hover:text-text transition-colors"
-          >
-            {item.label}
-          </a>
-        ))}
+        </Link>
+        {DESKTOP_NAV.map((item) => {
+          const active = isActive(pathname, item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                active
+                  ? "bg-primary-light text-primary"
+                  : "text-text-muted hover:bg-primary-light hover:text-text"
+              }`}
+            >
+              <NavIcon name={item.icon} className="w-5 h-5 shrink-0" />
+              {item.label}
+            </Link>
+          );
+        })}
         <div className="mt-auto">
           <button
             onClick={handleLogout}
@@ -58,16 +54,27 @@ export function NavBar() {
         </div>
       </nav>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-bg-card border-t border-border flex justify-around py-3 z-50">
-        {MOBILE_NAV.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className="text-xs font-medium text-text-muted hover:text-primary transition-colors"
-          >
-            {item.label}
-          </a>
-        ))}
+      {/* Barra inferior: celular */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-around border-t border-border bg-bg-card pt-2 pb-safe"
+        aria-label="Navegacao principal"
+      >
+        {MOBILE_NAV.map((item) => {
+          const active = isActive(pathname, item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              className={`flex min-w-[44px] min-h-[44px] flex-1 flex-col items-center justify-center gap-1 rounded-lg text-[10px] font-medium transition-colors ${
+                active ? "text-primary" : "text-text-muted"
+              }`}
+            >
+              <NavIcon name={item.icon} className="w-6 h-6" />
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
     </>
   );
