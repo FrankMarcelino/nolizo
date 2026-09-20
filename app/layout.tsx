@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { NavBar } from "./NavBar";
 import { MainWrapper } from "./MainWrapper";
+import { RegisterSW } from "./RegisterSW";
 
 export const metadata: Metadata = {
   title: "Nolizo - Financas da Familia",
@@ -34,6 +35,7 @@ export default function RootLayout({
           <div className="flex min-h-screen">
             <NavBar />
             <MainWrapper>{children}</MainWrapper>
+            <RegisterSW />
           </div>
         </body>
       </html>
