@@ -11,7 +11,9 @@ export function MainWrapper({ children }: { children: React.ReactNode }) {
   return (
     <main
       className={
-        noPadding ? "flex-1" : "flex-1 p-4 md:p-8 pb-20 md:pb-8"
+        noPadding
+          ? "flex-1"
+          : "flex-1 p-4 md:p-8 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-8"
       }
     >
       {children}

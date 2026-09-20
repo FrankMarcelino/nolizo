@@ -10,6 +10,7 @@ export default [
       "node_modules/**",
       "dist/**",
       "next-env.d.ts",
+      "public/**",
     ],
   },
   js.configs.recommended,

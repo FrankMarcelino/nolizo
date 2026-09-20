@@ -1,12 +1,26 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { NavBar } from "./NavBar";
 import { MainWrapper } from "./MainWrapper";
+import { RegisterSW } from "./RegisterSW";
 
 export const metadata: Metadata = {
   title: "Nolizo - Financas da Familia",
   description: "Controle financeiro familiar intuitivo e visual.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Nolizo",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0b0f19",
 };
 
 export default function RootLayout({
@@ -21,6 +35,7 @@ export default function RootLayout({
           <div className="flex min-h-screen">
             <NavBar />
             <MainWrapper>{children}</MainWrapper>
+            <RegisterSW />
           </div>
         </body>
       </html>
