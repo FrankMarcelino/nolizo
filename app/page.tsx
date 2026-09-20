@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const FEATURES = [
@@ -81,26 +82,26 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-3">
             {isAuth ? (
-              <a
+              <Link
                 href="/dashboard"
                 className="px-4 py-2 rounded-lg bg-primary text-bg text-sm font-medium hover:bg-primary-hover transition-colors"
               >
                 Ir ao app →
-              </a>
+              </Link>
             ) : (
               <>
-                <a
+                <Link
                   href="/login"
                   className="text-sm text-text-muted hover:text-text transition-colors"
                 >
                   Entrar
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/login"
                   className="px-4 py-2 rounded-lg bg-primary text-bg text-sm font-medium hover:bg-primary-hover transition-colors"
                 >
                   Criar conta grátis
-                </a>
+                </Link>
               </>
             )}
           </div>
@@ -128,20 +129,20 @@ export default function LandingPage() {
 
         <div className="flex flex-col sm:flex-row gap-3">
           {isAuth ? (
-            <a
+            <Link
               href="/dashboard"
               className="px-8 py-3.5 rounded-xl bg-primary text-bg text-base font-semibold hover:bg-primary-hover transition-colors"
             >
               Abrir Dashboard →
-            </a>
+            </Link>
           ) : (
             <>
-              <a
+              <Link
                 href="/login"
                 className="px-8 py-3.5 rounded-xl bg-primary text-bg text-base font-semibold hover:bg-primary-hover transition-colors"
               >
                 Começar agora — é grátis
-              </a>
+              </Link>
               <a
                 href="#como-funciona"
                 className="px-8 py-3.5 rounded-xl border border-border text-text-muted text-base font-medium hover:border-primary hover:text-text transition-colors"
@@ -278,19 +279,19 @@ export default function LandingPage() {
             Gratuito. Sem cartão. Comece agora.
           </p>
           {isAuth ? (
-            <a
+            <Link
               href="/dashboard"
               className="inline-block px-10 py-4 rounded-xl bg-primary text-bg text-base font-semibold hover:bg-primary-hover transition-colors"
             >
               Abrir Dashboard →
-            </a>
+            </Link>
           ) : (
-            <a
+            <Link
               href="/login"
               className="inline-block px-10 py-4 rounded-xl bg-primary text-bg text-base font-semibold hover:bg-primary-hover transition-colors"
             >
               Criar conta grátis →
-            </a>
+            </Link>
           )}
         </div>
       </section>
