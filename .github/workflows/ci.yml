@@ -27,3 +27,51 @@ jobs:
 
       - name: Run tests
         run: npm run test
+
+  migrate:
+    needs: quality
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    # Portao de aprovacao: configure required reviewers no Environment "production"
+    # em Settings > Environments para exigir seu OK antes de tocar no banco.
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Fixado no SHA da v3.0.0. Tag movel (@v1, @v3) permitiria que um
+      # comprometimento da action rodasse codigo novo com acesso ao banco.
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
+        with:
+          version: 2.117.0
+
+      - name: Link project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+
+      # SOMENTE schema. NAO adicione --data-only aqui: este repositorio e PUBLICO
+      # e artefatos de repo publico sao baixaveis por qualquer um — um dump de dados
+      # publicaria o financeiro da familia. O schema ja e publico via supabase/migrations.
+      - name: Backup schema before push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase db dump --linked --file backup-schema.sql
+
+      - name: Upload schema backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-schema-${{ github.sha }}
+          path: backup-schema.sql
+          retention-days: 30
+
+      - name: Apply migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase db push --linked --yes

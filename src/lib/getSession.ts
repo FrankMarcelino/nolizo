@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from "./supabase/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { createSupabaseAdminClient } from "./supabaseAdmin";
 
 export type Session = {
@@ -13,31 +13,29 @@ export type Session = {
  * Throws a 401 error if the user is not authenticated.
  */
 export async function getSession(): Promise<Session> {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const { userId } = await auth();
 
-  if (error || !user) {
+  if (!userId) {
     const err = new Error("Unauthorized") as Error & { status: number };
     err.status = 401;
     throw err;
   }
 
+  const user = await currentUser();
+
   const admin = createSupabaseAdminClient();
   const { data: member } = await admin
     .from("family_members")
     .select("family_id")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .eq("active", true)
     .maybeSingle();
 
   return {
-    userId: user.id,
+    userId,
     familyId: member?.family_id ?? null,
-    email: user.email ?? null,
-    name: (user.user_metadata?.name as string) ?? null,
+    email: user?.primaryEmailAddress?.emailAddress ?? null,
+    name: user?.fullName ?? null,
   };
 }
 

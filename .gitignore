@@ -6,3 +6,6 @@ dist/
 .DS_Store
 .next/
 next-env.d.ts
+.superpowers/
+supabase/.temp/
+tsconfig.tsbuildinfo
