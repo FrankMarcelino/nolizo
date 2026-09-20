@@ -7,6 +7,12 @@ import { MainWrapper } from "./MainWrapper";
 export const metadata: Metadata = {
   title: "Nolizo - Financas da Familia",
   description: "Controle financeiro familiar intuitivo e visual.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Nolizo",
+  },
 };
 
 export const viewport: Viewport = {
