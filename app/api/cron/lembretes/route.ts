@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import webpush from "web-push";
 import { createSupabaseAdminClient } from "@/src/lib/supabaseAdmin";
 import { montarLembrete, type ContaLembrete } from "@/src/domain/lembretes";
+import { endpointPermitido } from "@/src/domain/pushEndpoint";
 
 /**
  * ESTA ROTA NAO USA getSession().
@@ -27,7 +29,17 @@ export async function GET(request: NextRequest) {
   if (!esperado) {
     return NextResponse.json({ error: "CRON_SECRET nao configurado" }, { status: 500 });
   }
-  if (request.headers.get("authorization") !== `Bearer ${esperado}`) {
+  const recebido = request.headers.get("authorization") ?? "";
+  const esperadoBearer = `Bearer ${esperado}`;
+  const bufRecebido = Buffer.from(recebido);
+  const bufEsperado = Buffer.from(esperadoBearer);
+  // timingSafeEqual lanca excecao se os buffers tiverem tamanhos diferentes,
+  // entao o tamanho e comparado antes — essa comparacao de tamanho nao vaza
+  // o segredo, so o comprimento do header recebido.
+  if (
+    bufRecebido.length !== bufEsperado.length ||
+    !timingSafeEqual(bufRecebido, bufEsperado)
+  ) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
@@ -83,6 +95,12 @@ export async function GET(request: NextRequest) {
 
     const alvos = (inscricoes ?? []).filter((i) => i.family_id === familyId);
     for (const alvo of alvos) {
+      // Defesa em profundidade: uma linha gravada antes da validacao de
+      // entrada em /api/push/subscribe nao e confiavel. Nao remover aqui —
+      // so nao enviar.
+      if (!endpointPermitido(alvo.endpoint)) {
+        continue;
+      }
       try {
         await webpush.sendNotification(
           {

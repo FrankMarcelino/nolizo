@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/src/lib/supabaseAdmin";
 import { getSessionWithFamily } from "@/src/lib/getSession";
+import { endpointPermitido } from "@/src/domain/pushEndpoint";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +15,16 @@ export async function POST(request: NextRequest) {
     if (!endpoint || !p256dh || !auth) {
       return NextResponse.json(
         { error: "endpoint e keys.p256dh/auth sao obrigatorios" },
+        { status: 400 }
+      );
+    }
+
+    // O cron faz POST para este endereco a partir da infraestrutura da
+    // Vercel: sem esta checagem, um endpoint arbitrario seria um SSRF.
+    // Nao ecoar o endpoint na resposta de erro.
+    if (!endpointPermitido(endpoint)) {
+      return NextResponse.json(
+        { error: "endpoint invalido" },
         { status: 400 }
       );
     }
