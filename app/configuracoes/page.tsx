@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useClerk } from "@clerk/nextjs";
+import { AtivarNotificacoes } from "../AtivarNotificacoes";
 
 type FamilyMember = { id: string; name: string; email: string | null; active: boolean };
 type Session = { userId: string; familyId: string | null; email: string | null };
@@ -203,6 +204,8 @@ export default function ConfiguracoesPage() {
       {msg && (
         <p className="mt-4 text-sm font-medium text-primary">{msg}</p>
       )}
+
+      <AtivarNotificacoes />
 
       <section className="mt-8 pt-6 border-t border-border">
         <h2 className="text-lg font-semibold mb-1">Conta</h2>
