@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { agrupar, bucketDe, hojeLocal, somarDias, type AgendaItem } from "./buckets";
+import { agrupar, bucketDe, hojeLocal, somarDias, ultimoDiaDoMes, type AgendaItem } from "./buckets";
 
 function conta(over: Partial<AgendaItem> = {}): AgendaItem {
   return {
@@ -70,6 +70,24 @@ describe("bucketDe", () => {
   it("status vencida no banco nao sobrepoe a data", () => {
     // O banco pode ter status desatualizado; a data manda.
     expect(bucketDe(conta({ date: "2026-10-15", status: "vencida" }), hoje)).toBe("depois");
+  });
+});
+
+describe("ultimoDiaDoMes", () => {
+  it("mes de 30 dias", () => {
+    expect(ultimoDiaDoMes("2026-09-15")).toBe("2026-09-30");
+  });
+  it("mes de 31 dias", () => {
+    expect(ultimoDiaDoMes("2026-10-01")).toBe("2026-10-31");
+  });
+  it("fevereiro comum", () => {
+    expect(ultimoDiaDoMes("2026-02-10")).toBe("2026-02-28");
+  });
+  it("fevereiro bissexto", () => {
+    expect(ultimoDiaDoMes("2028-02-10")).toBe("2028-02-29");
+  });
+  it("dezembro vira janeiro do ano seguinte", () => {
+    expect(ultimoDiaDoMes("2026-12-05")).toBe("2026-12-31");
   });
 });
 

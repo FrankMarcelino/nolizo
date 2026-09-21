@@ -9,3 +9,7 @@ next-env.d.ts
 .superpowers/
 supabase/.temp/
 tsconfig.tsbuildinfo
+
+# Planos e specs com dados financeiros reais da familia — repo e PUBLICO
+specs/2026-*.md
+APLICAR_AGORA.sql

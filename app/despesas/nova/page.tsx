@@ -159,6 +159,10 @@ export default function NovaDespesaPage() {
       setErrorMsg("A data fim do contrato deve ser posterior a data de inicio");
       return;
     }
+    if (members.length === 0) {
+      setErrorMsg("Nao foi possivel carregar os membros da familia. Recarregue a pagina.");
+      return;
+    }
 
     setSubmitting(true);
     try {

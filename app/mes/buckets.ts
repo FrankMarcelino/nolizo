@@ -34,6 +34,20 @@ export function somarDias(isoDate: string, dias: number): string {
 }
 
 /**
+ * Ultimo dia do mes de `hoje` (YYYY-MM-DD), respeitando meses de 28/29/30/31
+ * dias e virada de ano. NAO usa new Date(isoDate) para nao cair em UTC-3 —
+ * pega o primeiro dia do mes seguinte e subtrai 1 dia via somarDias.
+ */
+export function ultimoDiaDoMes(hoje: string): string {
+  const [ano, mes] = hoje.slice(0, 7).split("-").map(Number);
+  const proximoMes = mes + 1;
+  const anoDoProximoMes = proximoMes > 12 ? ano + 1 : ano;
+  const mesDoProximoMes = proximoMes > 12 ? 1 : proximoMes;
+  const primeiroDiaProximoMes = `${anoDoProximoMes}-${String(mesDoProximoMes).padStart(2, "0")}-01`;
+  return somarDias(primeiroDiaProximoMes, -1);
+}
+
+/**
  * Em qual balde a conta cai.
  *
  * A DATA manda, nao o status do banco — `status` pode estar desatualizado

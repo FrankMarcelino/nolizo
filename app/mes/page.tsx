@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { agrupar, hojeLocal, type AgendaItem, type Bucket } from "./buckets";
+import { agrupar, hojeLocal, ultimoDiaDoMes, type AgendaItem, type Bucket } from "./buckets";
 import { ContaRow } from "./ContaRow";
 
 const TITULOS: Record<Bucket, string> = {
@@ -21,7 +21,7 @@ export default function MesPage() {
 
   const hoje = useMemo(() => hojeLocal(), []);
   const primeiroDia = `${hoje.slice(0, 7)}-01`;
-  const ultimoDia = `${hoje.slice(0, 7)}-31`;
+  const ultimoDia = ultimoDiaDoMes(hoje);
 
   const carregar = useCallback(async () => {
     setErro("");
