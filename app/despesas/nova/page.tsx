@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFamilyId } from "@/src/hooks/useFamilyId";
 
@@ -19,7 +19,6 @@ type FamilyMember = {
   active: boolean;
 };
 
-type SplitMode = "igual" | "percentual" | "valorFixo";
 type ExpenseType = "fixa" | "variavel";
 type Recurrence = "unica" | "mensal" | "anual" | "parcelado";
 
@@ -64,6 +63,15 @@ function parseCurrencyToNumber(formatted: string): number {
   return parseFloat(clean) || 0;
 }
 
+function getTodayLocal(): string {
+  // Data LOCAL em YYYY-MM-DD. Convertendo para UTC (o formato ISO nativo do
+  // Date), em UTC-3 o dia anterior seria devolvido para horarios antes das 21h.
+  const d = new Date();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mes}-${dia}`;
+}
+
 export default function NovaDespesaPage() {
   const router = useRouter();
   const { familyId } = useFamilyId();
@@ -74,16 +82,12 @@ export default function NovaDespesaPage() {
   const [expenseType, setExpenseType] = useState<ExpenseType>("fixa");
   const [recurrence, setRecurrence] = useState<Recurrence>("unica");
   const [totalInstallments, setTotalInstallments] = useState("12");
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState(getTodayLocal);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [hasContract, setHasContract] = useState(false);
   const [contractStart, setContractStart] = useState("");
   const [contractEnd, setContractEnd] = useState("");
-  const [splitMode, setSplitMode] = useState<SplitMode>("igual");
-  const [percentages, setPercentages] = useState<Record<string, string>>({});
-  const [fixedAmounts, setFixedAmounts] = useState<Record<string, string>>({});
 
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -111,64 +115,6 @@ export default function NovaDespesaPage() {
       })
       .catch(() => {});
   }, [familyId]);
-
-  const toggleMember = useCallback((memberId: string) => {
-    setSelectedMembers((prev) =>
-      prev.includes(memberId)
-        ? prev.filter((id) => id !== memberId)
-        : [...prev, memberId]
-    );
-  }, []);
-
-  const selectAllMembers = useCallback(() => {
-    if (selectedMembers.length === members.length) {
-      setSelectedMembers([]);
-    } else {
-      setSelectedMembers(members.map((m) => m.id));
-    }
-  }, [members, selectedMembers.length]);
-
-  function buildShares() {
-    if (selectedMembers.length <= 1) return undefined;
-    if (splitMode === "igual") return undefined;
-
-    if (splitMode === "percentual") {
-      return selectedMembers.map((id) => ({
-        memberId: id,
-        percentage: Number(percentages[id] ?? 0),
-      }));
-    }
-
-    return selectedMembers.map((id) => ({
-      memberId: id,
-      fixedAmount: Number(fixedAmounts[id] ?? 0),
-    }));
-  }
-
-  function splitSummary(): string | null {
-    if (selectedMembers.length <= 1) return null;
-    if (splitMode === "igual") {
-      const val = amount / selectedMembers.length;
-      return `Cada responsavel paga R$ ${val.toFixed(2)}`;
-    }
-    if (splitMode === "percentual") {
-      const total = selectedMembers.reduce(
-        (sum, id) => sum + Number(percentages[id] ?? 0),
-        0
-      );
-      if (Math.abs(total - 100) > 0.01)
-        return `Soma: ${total.toFixed(1)}% (deve ser 100%)`;
-      return "Rateio fechado";
-    }
-    const total = selectedMembers.reduce(
-      (sum, id) => sum + Number(fixedAmounts[id] ?? 0),
-      0
-    );
-    const diff = amount - total;
-    if (Math.abs(diff) > 0.01)
-      return `Faltam R$ ${diff.toFixed(2)} para fechar o total`;
-    return "Rateio fechado";
-  }
 
   function getApiRecurrence(): string {
     if (recurrence === "parcelado") return "mensal";
@@ -213,6 +159,10 @@ export default function NovaDespesaPage() {
       setErrorMsg("A data fim do contrato deve ser posterior a data de inicio");
       return;
     }
+    if (members.length === 0) {
+      setErrorMsg("Nao foi possivel carregar os membros da familia. Recarregue a pagina.");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -231,10 +181,12 @@ export default function NovaDespesaPage() {
           contractEndDate: hasContract ? contractEnd : undefined,
           recurrence: getApiRecurrence(),
           totalInstallments: getApiInstallments(),
-          splitMode: selectedMembers.length > 1 ? splitMode : "igual",
-          responsibleMemberIds:
-            selectedMembers.length > 0 ? selectedMembers : undefined,
-          shares: buildShares(),
+          // Conta conjunta: todos os membros ativos sao responsaveis por toda
+          // despesa. normalizeShares() em expensesService le
+          // responsibleMemberIds.length — enviar undefined quebra a criacao.
+          // (a rota /api/expenses le body.responsibleMemberIds, nao "memberIds")
+          splitMode: "igual",
+          responsibleMemberIds: members.map((m) => m.id),
         }),
       });
 
@@ -247,15 +199,12 @@ export default function NovaDespesaPage() {
 
       setSuccess(true);
       setAmountDisplay("");
-      setDueDate("");
+      setDueDate(getTodayLocal());
       setSelectedCategory("");
       setDescription("");
       setHasContract(false);
       setContractStart("");
       setContractEnd("");
-      setSelectedMembers([]);
-      setPercentages({});
-      setFixedAmounts({});
     } catch {
       setErrorMsg("Erro de conexao com o servidor");
     } finally {
@@ -263,7 +212,6 @@ export default function NovaDespesaPage() {
     }
   }
 
-  const summary = splitSummary();
   const showInstallments = recurrence === "mensal" || recurrence === "anual" || recurrence === "parcelado";
 
   return (
@@ -509,160 +457,6 @@ export default function NovaDespesaPage() {
             />
           </div>
         </div>
-
-        {/* ── Responsaveis ── */}
-        {members.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-medium text-text-muted">
-                Responsaveis *
-              </label>
-              <button
-                type="button"
-                onClick={selectAllMembers}
-                className="text-xs text-primary hover:text-primary-hover transition-colors"
-              >
-                {selectedMembers.length === members.length
-                  ? "Desmarcar todos"
-                  : "Selecionar todos"}
-              </button>
-            </div>
-            <div className="space-y-2">
-              {members.map((member) => {
-                const selected = selectedMembers.includes(member.id);
-                return (
-                  <button
-                    key={member.id}
-                    type="button"
-                    onClick={() => toggleMember(member.id)}
-                    className={`w-full flex items-center gap-3 rounded-xl border p-3 text-left transition-all ${
-                      selected
-                        ? "border-primary bg-primary-light ring-1 ring-primary/30"
-                        : "border-border bg-bg-card hover:border-primary/50"
-                    }`}
-                  >
-                    <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                        selected
-                          ? "bg-primary text-bg"
-                          : "bg-bg-elevated text-text-muted"
-                      }`}
-                    >
-                      {member.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium truncate">
-                        {member.name}
-                      </div>
-                      {member.email && (
-                        <div className="text-xs text-text-muted truncate">
-                          {member.email}
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ── Modo de rateio ── */}
-        {selectedMembers.length > 1 && (
-          <div>
-            <label className="block text-xs font-medium text-text-muted mb-2">
-              Modo de rateio
-            </label>
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              {(["igual", "percentual", "valorFixo"] as SplitMode[]).map(
-                (mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setSplitMode(mode)}
-                    className={`py-2.5 rounded-xl text-xs font-semibold transition-colors ${
-                      splitMode === mode
-                        ? "bg-primary text-bg"
-                        : "bg-bg-card border border-border text-text-muted hover:border-primary"
-                    }`}
-                  >
-                    {mode === "valorFixo"
-                      ? "Valor fixo"
-                      : mode.charAt(0).toUpperCase() + mode.slice(1)}
-                  </button>
-                )
-              )}
-            </div>
-
-            {splitMode !== "igual" && (
-              <div className="space-y-2">
-                {selectedMembers.map((memberId) => {
-                  const member = members.find((m) => m.id === memberId);
-                  if (!member) return null;
-
-                  return (
-                    <div
-                      key={memberId}
-                      className="flex items-center gap-3 rounded-xl border border-border bg-bg-card p-3"
-                    >
-                      <span className="text-sm font-medium flex-1 truncate">
-                        {member.name}
-                      </span>
-                      {splitMode === "percentual" ? (
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            placeholder="0"
-                            value={percentages[memberId] ?? ""}
-                            onChange={(e) =>
-                              setPercentages((prev) => ({
-                                ...prev,
-                                [memberId]: e.target.value,
-                              }))
-                            }
-                            className="w-20 rounded-lg border border-border px-2 py-1.5 text-sm text-right bg-bg focus:outline-none focus:border-primary"
-                          />
-                          <span className="text-sm text-text-muted">%</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm text-text-muted">R$</span>
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="0,00"
-                            value={fixedAmounts[memberId] ?? ""}
-                            onChange={(e) =>
-                              setFixedAmounts((prev) => ({
-                                ...prev,
-                                [memberId]: e.target.value,
-                              }))
-                            }
-                            className="w-24 rounded-lg border border-border px-2 py-1.5 text-sm text-right bg-bg focus:outline-none focus:border-primary"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {summary && (
-              <p
-                className={`mt-2 text-sm font-medium ${
-                  summary === "Rateio fechado" ? "text-success" : "text-warning"
-                }`}
-              >
-                {summary}
-              </p>
-            )}
-          </div>
-        )}
 
         {/* ── Feedback ── */}
         {errorMsg && (

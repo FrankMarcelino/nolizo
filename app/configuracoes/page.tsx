@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useClerk } from "@clerk/nextjs";
 
 type FamilyMember = { id: string; name: string; email: string | null; active: boolean };
 type Session = { userId: string; familyId: string | null; email: string | null };
 
 export default function ConfiguracoesPage() {
+  const { signOut } = useClerk();
   const [session, setSession] = useState<Session | null>(null);
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [familyName, setFamilyName] = useState("");
@@ -90,6 +92,10 @@ export default function ConfiguracoesPage() {
     } catch {
       setMsg("Erro de conexao");
     }
+  }
+
+  async function handleLogout() {
+    await signOut({ redirectUrl: "/login" });
   }
 
   if (!session) {
@@ -197,6 +203,19 @@ export default function ConfiguracoesPage() {
       {msg && (
         <p className="mt-4 text-sm font-medium text-primary">{msg}</p>
       )}
+
+      <section className="mt-8 pt-6 border-t border-border">
+        <h2 className="text-lg font-semibold mb-1">Conta</h2>
+        <p className="text-sm text-text-muted mb-4">
+          Voce vai precisar entrar de novo com o Google.
+        </p>
+        <button
+          onClick={handleLogout}
+          className="min-h-[44px] w-full rounded-lg border border-danger px-4 py-3 text-sm font-semibold text-danger transition-colors hover:bg-danger hover:text-bg sm:w-auto"
+        >
+          Sair da conta
+        </button>
+      </section>
     </div>
   );
 }

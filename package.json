@@ -10,8 +10,8 @@
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "check": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "TZ=America/Fortaleza vitest run",
+    "test:watch": "TZ=America/Fortaleza vitest"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",
