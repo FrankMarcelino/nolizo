@@ -42,9 +42,15 @@ export function montarLembrete(
   const amanha = amanhaDe(hoje);
 
   const vencidas = abertas.filter((c) => c.due_date < hoje);
+  const vencemHoje = abertas.filter((c) => c.due_date === hoje);
   const vencemAmanha = abertas.filter((c) => c.due_date === amanha);
 
-  if (vencidas.length === 0 && vencemAmanha.length === 0) return null;
+  if (
+    vencidas.length === 0 &&
+    vencemHoje.length === 0 &&
+    vencemAmanha.length === 0
+  )
+    return null;
 
   const somaVencidas = vencidas.reduce((s, c) => s + Number(c.amount), 0);
   const partes: string[] = [];
@@ -52,6 +58,14 @@ export function montarLembrete(
   if (vencidas.length > 0) {
     partes.push(
       `Vencidas: ${vencidas.map(nome).join(", ")} — ${brl(somaVencidas)}`
+    );
+  }
+
+  if (vencemHoje.length > 0) {
+    partes.push(
+      `Hoje: ${vencemHoje
+        .map((c) => `${nome(c)} ${brl(Number(c.amount))}`)
+        .join(", ")}`
     );
   }
 
@@ -68,6 +82,10 @@ export function montarLembrete(
       ? `${vencidas.length} conta${vencidas.length > 1 ? "s" : ""} vencida${
           vencidas.length > 1 ? "s" : ""
         }`
+      : vencemHoje.length > 0
+      ? `Vence hoje: ${brl(
+          vencemHoje.reduce((s, c) => s + Number(c.amount), 0)
+        )}`
       : `Vence amanha: ${brl(
           vencemAmanha.reduce((s, c) => s + Number(c.amount), 0)
         )}`;

@@ -39,9 +39,12 @@ describe("montarLembrete", () => {
     expect(r!.corpo).toContain("900");
   });
 
-  it("nao avisa de conta que vence HOJE como se fosse amanha", () => {
+  it("avisa de conta que vence HOJE, mas nao como se fosse amanha", () => {
     const r = montarLembrete([conta({ due_date: HOJE })], HOJE);
-    expect(r).toBeNull();
+    expect(r).not.toBeNull();
+    expect(r!.corpo).toContain("Hoje");
+    expect(r!.corpo).toContain("Aluguel");
+    expect(r!.titulo.toLowerCase()).not.toContain("amanha");
   });
 
   it("avisa de contas vencidas com a soma", () => {
@@ -92,5 +95,43 @@ describe("montarLembrete", () => {
     const r = montarLembrete([conta({ due_date: "2026-10-01" })], "2026-09-30");
     expect(r).not.toBeNull();
     expect(r!.titulo).toContain("amanha");
+  });
+
+  it("avisa de uma conta que vence hoje", () => {
+    const r = montarLembrete(
+      [conta({ due_date: HOJE, description: "Parcela" })],
+      HOJE
+    );
+    expect(r).not.toBeNull();
+    expect(r!.titulo.toLowerCase()).toContain("hoje");
+    expect(r!.corpo).toContain("Parcela");
+    expect(r!.titulo.toLowerCase()).not.toContain("amanha");
+  });
+
+  it("vencidas tem prioridade no titulo sobre as de hoje", () => {
+    const r = montarLembrete(
+      [
+        conta({ due_date: "2026-09-10", description: "Atrasada" }),
+        conta({ due_date: HOJE, description: "DoDia" }),
+      ],
+      HOJE
+    );
+    expect(r!.titulo.toLowerCase()).toContain("vencid");
+    expect(r!.corpo).toContain("Atrasada");
+    expect(r!.corpo).toContain("DoDia");
+  });
+
+  it("menciona as tres situacoes no corpo quando todas existem", () => {
+    const r = montarLembrete(
+      [
+        conta({ due_date: "2026-09-10", description: "Atrasada" }),
+        conta({ due_date: HOJE, description: "DoDia" }),
+        conta({ due_date: "2026-09-22", description: "Amanha" }),
+      ],
+      HOJE
+    );
+    expect(r!.corpo).toContain("Atrasada");
+    expect(r!.corpo).toContain("DoDia");
+    expect(r!.corpo).toContain("Amanha");
   });
 });
