@@ -22,6 +22,15 @@ describe("config de navegacao", () => {
       expect(item.label.trim().length).toBeGreaterThan(0);
     }
   });
+
+  it("os menus nao estao vazios", () => {
+    expect(DESKTOP_NAV.length).toBeGreaterThan(0);
+    expect(MOBILE_NAV.length).toBeGreaterThan(0);
+  });
+
+  it("a agenda e o primeiro item da barra inferior", () => {
+    expect(MOBILE_NAV[0].href).toBe("/mes");
+  });
 });
 
 describe("isActive", () => {

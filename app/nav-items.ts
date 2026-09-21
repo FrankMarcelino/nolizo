@@ -1,4 +1,4 @@
-export type IconName = "painel" | "extrato" | "nova" | "plano" | "config";
+export type IconName = "agenda" | "painel" | "extrato" | "nova" | "plano" | "config";
 
 export type NavItem = {
   href: string;
@@ -11,24 +11,25 @@ export const HIDDEN_ROUTES = ["/", "/login", "/onboarding"];
 
 /**
  * Menu lateral (tablet/desktop).
- * As telas de desejos e patrimonio ficam fora do menu por enquanto —
- * continuam acessiveis por URL, mas nao entram no escopo mobile.
  */
 export const DESKTOP_NAV: NavItem[] = [
+  { href: "/mes", label: "Mes", icon: "agenda" },
   { href: "/dashboard", label: "Painel", icon: "painel" },
   { href: "/extrato", label: "Extrato", icon: "extrato" },
   { href: "/despesas/nova", label: "Nova despesa", icon: "nova" },
   { href: "/entradas/nova", label: "Nova entrada", icon: "nova" },
   { href: "/planejamento", label: "Planejamento", icon: "plano" },
+  { href: "/desejos", label: "Desejos", icon: "plano" },
+  { href: "/patrimonio", label: "Patrimonio", icon: "plano" },
   { href: "/configuracoes", label: "Configuracoes", icon: "config" },
 ];
 
 /** Barra inferior (celular). No maximo 5 itens — mais que isso nao cabe. */
 export const MOBILE_NAV: NavItem[] = [
+  { href: "/mes", label: "Mes", icon: "agenda" },
+  { href: "/despesas/nova", label: "Lancar", icon: "nova" },
   { href: "/dashboard", label: "Painel", icon: "painel" },
   { href: "/extrato", label: "Extrato", icon: "extrato" },
-  { href: "/despesas/nova", label: "Lancar", icon: "nova" },
-  { href: "/planejamento", label: "Plano", icon: "plano" },
   { href: "/configuracoes", label: "Config", icon: "config" },
 ];
 
